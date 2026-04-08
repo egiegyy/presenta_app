@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:presenta_app/core/services/api_service.dart';
-import 'package:presenta_app/core/services/local_storage_service.dart';
+import 'package:presenta_app/core/utils/exceptions.dart';
 import 'package:presenta_app/models/user_model.dart';
+import 'package:presenta_app/services/auth_service.dart';
 
 class AuthProvider extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
-  final LocalStorageService _storage = LocalStorageService();
+  AuthProvider({AuthService? authService})
+    : _authService = authService ?? AuthService();
+
+  final AuthService _authService;
 
   UserModel? _currentUser;
   bool _isLoading = false;
@@ -18,28 +20,21 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoggedIn => _isLoggedIn;
 
   Future<bool> login(String email, String password) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
     try {
-      await _apiService.login(email, password);
+      _setLoading(true);
+      _error = null;
+
+      _currentUser = await _authService.login(email: email, password: password);
       _isLoggedIn = true;
-
-      // Fetch user profile after login
-      final profileResponse = await _apiService.getProfile();
-      _currentUser = UserModel.fromJson(
-        profileResponse['data'] ?? profileResponse,
-      );
-
-      _isLoading = false;
-      notifyListeners();
+      notifyListeners(); // explicitly rebuild Consumers after state change
       return true;
-    } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
-      notifyListeners();
+    } on Exception catch (e) {
+      _error = getErrorMessage(e);
+      _currentUser = null;
+      _isLoggedIn = false;
       return false;
+    } finally {
+      _setLoading(false);
     }
   }
 
@@ -48,73 +43,110 @@ class AuthProvider extends ChangeNotifier {
     String email,
     String password,
     String gender,
-    String batch,
-    String training,
+    int? batchId,
+    int? trainingId,
+    String? profilePhotoBase64,
   ) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
     try {
-      await _apiService.register({
-        'name': name,
-        'email': email,
-        'password': password,
-        'gender': gender,
-        'batch': batch,
-        'training': training,
-      });
+      _setLoading(true);
+      _error = null;
 
-      _isLoading = false;
-      notifyListeners();
+      await _authService.register(
+        name: name,
+        email: email,
+        password: password,
+        gender: gender,
+        profilePhotoBase64: profilePhotoBase64,
+        batchId: batchId,
+        trainingId: trainingId,
+      );
       return true;
-    } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
-      notifyListeners();
+    } on Exception catch (e) {
+      _error = getErrorMessage(e);
       return false;
+    } finally {
+      _setLoading(false);
     }
   }
 
   Future<void> checkLoginStatus() async {
-    final token = await _storage.getToken();
-    if (token != null) {
-      try {
-        final profileResponse = await _apiService.getProfile();
-        _currentUser = UserModel.fromJson(
-          profileResponse['data'] ?? profileResponse,
-        );
-        _isLoggedIn = true;
-      } catch (e) {
+    try {
+      final hasSession = await _authService.hasValidSession();
+      if (!hasSession) {
         _isLoggedIn = false;
         _currentUser = null;
+        notifyListeners();
+        return;
       }
-    } else {
+
+      _currentUser = await _authService.getAuthenticatedUser();
+      _isLoggedIn = true;
+    } on Exception {
       _isLoggedIn = false;
       _currentUser = null;
+      _error = null;
     }
     notifyListeners();
   }
 
   Future<void> logout() async {
-    _isLoading = true;
-    notifyListeners();
-
     try {
-      await _apiService.logout();
+      _setLoading(true);
+      await _authService.logout();
       _currentUser = null;
       _isLoggedIn = false;
       _error = null;
-    } catch (e) {
-      _error = e.toString();
+      notifyListeners(); // rebuild so AuthWrapper routes to login
+    } on Exception catch (e) {
+      _error = getErrorMessage(e);
+    } finally {
+      _setLoading(false);
     }
+  }
 
-    _isLoading = false;
-    notifyListeners();
+  Future<bool> requestForgotPasswordOtp(String email) async {
+    try {
+      _setLoading(true);
+      _error = null;
+      await _authService.requestForgotPasswordOtp(email);
+      return true;
+    } on Exception catch (e) {
+      _error = getErrorMessage(e);
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<bool> resetPasswordWithOtp({
+    required String email,
+    required String otp,
+    required String password,
+  }) async {
+    try {
+      _setLoading(true);
+      _error = null;
+      await _authService.resetPasswordWithOtp(
+        email: email,
+        otp: otp,
+        password: password,
+      );
+      return true;
+    } on Exception catch (e) {
+      _error = getErrorMessage(e);
+      return false;
+    } finally {
+      _setLoading(false);
+    }
   }
 
   void clearError() {
     _error = null;
+    notifyListeners();
+  }
+
+  void _setLoading(bool value) {
+    _isLoading = value;
     notifyListeners();
   }
 }

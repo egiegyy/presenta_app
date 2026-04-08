@@ -4,10 +4,11 @@ import 'package:provider/provider.dart';
 import 'package:presenta_app/providers/attendance_provider.dart';
 import 'package:presenta_app/providers/user_provider.dart';
 import 'package:presenta_app/core/constants/app_constants.dart';
+import 'package:presenta_app/core/services/location_service.dart';
 import 'package:geolocator/geolocator.dart';
 
 class CheckinFormPage extends StatefulWidget {
-  const CheckinFormPage({Key? key}) : super(key: key);
+  const CheckinFormPage({super.key});
 
   @override
   State<CheckinFormPage> createState() => _CheckinFormPageState();
@@ -17,8 +18,8 @@ class _CheckinFormPageState extends State<CheckinFormPage> {
   final _reasonController = TextEditingController();
   String? _selectedStatus;
   Position? _currentLocation;
-  GoogleMapController? _mapController;
   bool _isLoading = false;
+  GoogleMapController? _mapController;
 
   final List<String> _statuses = AppConstants.attendanceStatuses;
 
@@ -30,17 +31,19 @@ class _CheckinFormPageState extends State<CheckinFormPage> {
 
   Future<void> _loadLocation() async {
     try {
-      final location = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-      setState(() {
-        _currentLocation = location;
-      });
+      // Use LocationService to handle permissions properly before getting position
+      final locationService = LocationService();
+      final position = await locationService.getCurrentLocation();
+      if (mounted) {
+        setState(() {
+          _currentLocation = position;
+        });
+      }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Gagal mendapatkan lokasi: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mendapatkan lokasi: ${e.toString().replaceAll('Exception: ', '')}')),
+        );
       }
     }
   }
@@ -76,7 +79,7 @@ class _CheckinFormPageState extends State<CheckinFormPage> {
       setState(() => _isLoading = false);
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(success ? AppStrings.checkInSuccess : 'Gagal')),
+        SnackBar(content: Text(success ? 'Check in berhasil' : 'Gagal')),
       );
     }
   }
@@ -110,7 +113,7 @@ class _CheckinFormPageState extends State<CheckinFormPage> {
 
             // Status Dropdown
             DropdownButtonFormField<String>(
-              value: _selectedStatus,
+              initialValue: _selectedStatus,
               decoration: const InputDecoration(
                 labelText: AppStrings.status,
                 border: OutlineInputBorder(),
@@ -156,6 +159,7 @@ class _CheckinFormPageState extends State<CheckinFormPage> {
               child: _currentLocation == null
                   ? const Center(child: CircularProgressIndicator())
                   : GoogleMap(
+                      onMapCreated: _onMapCreated,
                       initialCameraPosition: CameraPosition(
                         target: LatLng(
                           _currentLocation!.latitude,
@@ -211,6 +215,11 @@ class _CheckinFormPageState extends State<CheckinFormPage> {
   @override
   void dispose() {
     _reasonController.dispose();
+    _mapController?.dispose();
     super.dispose();
+  }
+
+  void _onMapCreated(GoogleMapController controller) {
+    _mapController = controller;
   }
 }

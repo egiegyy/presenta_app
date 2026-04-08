@@ -11,15 +11,15 @@ import 'package:presenta_app/core/constants/app_constants.dart';
 import 'package:presenta_app/presentation/pages/checkin_form.dart'; // Temp
 
 class HomeContent extends StatefulWidget {
-  const HomeContent({Key? key}) : super(key: key);
+  const HomeContent({super.key});
 
   @override
   State<HomeContent> createState() => _HomeContentState();
 }
 
 class _HomeContentState extends State<HomeContent> {
-  GoogleMapController? _mapController;
   Timer? _clockTimer;
+  GoogleMapController? _mapController;
 
   @override
   void initState() {
@@ -35,6 +35,17 @@ class _HomeContentState extends State<HomeContent> {
     userProvider.getProfile();
   }
 
+  @override
+  void dispose() {
+    _clockTimer?.cancel();
+    _mapController?.dispose();
+    super.dispose();
+  }
+
+  void _onMapCreated(GoogleMapController controller) {
+    _mapController = controller;
+  }
+
   String _getGreeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) return 'Selamat Pagi';
@@ -47,7 +58,7 @@ class _HomeContentState extends State<HomeContent> {
     return StreamBuilder<DateTime>(
       stream: Stream.periodic(
         const Duration(seconds: 1),
-        (int) => DateTime.now(),
+        (_) => DateTime.now(),
       ),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const Text('--:--:--');
@@ -156,6 +167,7 @@ class _HomeContentState extends State<HomeContent> {
                     child: location == null
                         ? const Center(child: CircularProgressIndicator())
                         : GoogleMap(
+                            onMapCreated: _onMapCreated,
                             initialCameraPosition: CameraPosition(
                               target: LatLng(
                                 location.latitude,
@@ -328,7 +340,7 @@ class _HomeContentState extends State<HomeContent> {
     final noteController = TextEditingController();
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Check Out'),
         content: TextFormField(
           controller: noteController,
@@ -337,21 +349,28 @@ class _HomeContentState extends State<HomeContent> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Batal'),
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(ctx);
+              Navigator.pop(dialogContext); // close dialog first
               final attendanceProvider = context.read<AttendanceProvider>();
               final success = await attendanceProvider.checkOut(
                 noteController.text.trim(),
               );
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(success ? 'Check Out berhasil' : 'Gagal'),
-                ),
-              );
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      success
+                          ? AppStrings.checkOutSuccess
+                          : (attendanceProvider.error ?? 'Gagal check out'),
+                    ),
+                    backgroundColor: success ? Colors.green : Colors.red,
+                  ),
+                );
+              }
             },
             child: const Text('Check Out'),
           ),
@@ -365,8 +384,7 @@ class StatusPill extends StatelessWidget {
   final String label;
   final Color color;
 
-  const StatusPill({Key? key, required this.label, required this.color})
-    : super(key: key);
+  const StatusPill({super.key, required this.label, required this.color});
 
   @override
   Widget build(BuildContext context) {

@@ -5,7 +5,7 @@ import 'package:presenta_app/presentation/widgets/custom_widgets.dart';
 import 'package:presenta_app/core/constants/app_constants.dart';
 
 class HistoryPage extends StatefulWidget {
-  const HistoryPage({Key? key}) : super(key: key);
+  const HistoryPage({super.key});
 
   @override
   State<HistoryPage> createState() => _HistoryPageState();

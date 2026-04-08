@@ -1,4 +1,5 @@
 import 'package:geolocator/geolocator.dart';
+import 'package:presenta_app/core/utils/exceptions.dart';
 
 class LocationService {
   Future<Position> getCurrentLocation() async {
@@ -8,20 +9,21 @@ class LocationService {
     // Check if location services are enabled
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      throw Exception('Location services are disabled.');
+      throw LocationException(message: 'Layanan lokasi tidak aktif.');
     }
 
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        throw Exception('Location permissions are denied');
+        throw LocationException(message: 'Izin lokasi ditolak.');
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      throw Exception(
-        'Location permissions are permanently denied, we cannot request permissions.',
+      throw LocationException(
+        message:
+            'Izin lokasi ditolak permanen. Aktifkan kembali dari pengaturan perangkat.',
       );
     }
 

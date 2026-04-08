@@ -5,7 +5,7 @@ import 'package:presenta_app/presentation/pages/login_page.dart';
 import 'package:presenta_app/presentation/pages/dashboard_page.dart';
 
 class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({Key? key}) : super(key: key);
+  const AuthWrapper({super.key});
 
   @override
   Widget build(BuildContext context) {

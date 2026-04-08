@@ -12,12 +12,19 @@ class AppConstants {
   static const String registerEndpoint = '/api/register';
   static const String profileEndpoint = '/api/profile';
   static const String editProfileEndpoint = '/api/profile';
-  static const String checkInEndpoint = '/api/absen/check-in';
-  static const String checkOutEndpoint = '/api/absen/check-out';
-  static const String historyAbsenEndpoint = '/api/absen/history';
+  static const String profilePhotoEndpoint = '/api/profile/photo';
+  static const String checkInEndpoint = '/api/absen-check-in';
+  static const String checkOutEndpoint = '/api/absen-check-out';
+  static const String izinEndpoint = '/api/izin';
+  static const String historyAbsenEndpoint = '/api/history-absen';
   static const String batchesEndpoint = '/api/batches';
   static const String trainingsEndpoint = '/api/trainings';
-  static const String deleteAbsenEndpoint = '/api/absen';
+  static const String deleteAbsenEndpoint = '/api/delete-absen';
+  static const String absenTodayEndpoint = '/api/absen-today';
+  static const String absenStatsEndpoint = '/api/absen-stats';
+  static const String deviceTokenEndpoint = '/api/device-token';
+  static const String forgotPasswordEndpoint = '/forgot-password';
+  static const String resetPasswordEndpoint = '/reset-password';
 
   // Timeouts
   static const int apiTimeoutSeconds = 30;
@@ -94,6 +101,7 @@ class AppStrings {
   static const String permissionDenied = 'Izin ditolak';
   static const String tokenExpired =
       'Sesi Anda expired, silahkan login kembali';
+  static const String unknownError = 'Terjadi kesalahan yang tidak diketahui';
 
   // Success Messages
   static const String loginSuccess = 'Login berhasil';

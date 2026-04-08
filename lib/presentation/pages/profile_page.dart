@@ -6,10 +6,9 @@ import 'package:presenta_app/presentation/widgets/custom_widgets.dart';
 import 'package:presenta_app/core/constants/app_constants.dart';
 import 'dart:io';
 import 'dart:convert';
-import 'package:presenta_app/core/services/local_storage_service.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({Key? key}) : super(key: key);
+  const ProfilePage({super.key});
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -31,27 +30,29 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _loadProfile() {
     final userProvider = context.read<UserProvider>();
-    userProvider.getProfile();
+    userProvider.getProfile().then((_) {
+      // Populate controllers once after data is fetched (not on every build)
+      if (mounted && !_isEditing) {
+        final user = context.read<UserProvider>().user;
+        if (user != null) {
+          _nameController.text = user.name;
+          _emailController.text = user.email;
+        }
+      }
+    });
     userProvider.getBatches();
     userProvider.getTrainings();
-
-    if (userProvider.user != null) {
-      _nameController.text = userProvider.user!.name;
-      _emailController.text = userProvider.user!.email;
-    }
   }
 
   Future<void> _pickImage(ImageSource source) async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: source);
 
-    if (pickedFile != null) {
+    if (pickedFile != null && mounted) {
       setState(() {
         _selectedImage = File(pickedFile.path);
       });
-      // Save local path immediately
-      final storage = LocalStorageService();
-      await storage.saveProfileImagePath(pickedFile.path);
+      await context.read<UserProvider>().saveLocalImagePath(pickedFile.path);
     }
   }
 
@@ -109,6 +110,8 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     final success = await userProvider.updateProfile(updateData);
+    if (!mounted) return;
+
     if (success) {
       SuccessSnackbar.show(context, 'Profil berhasil diupdate');
       setState(() => _isEditing = false);
@@ -137,7 +140,15 @@ class _ProfilePageState extends State<ProfilePage> {
             onPressed: () {
               setState(() {
                 _isEditing = !_isEditing;
-                if (!_isEditing) _selectedImage = null;
+                if (!_isEditing) {
+                  _selectedImage = null;
+                  // Re-sync controllers to server data after cancelling edit
+                  final user = context.read<UserProvider>().user;
+                  if (user != null) {
+                    _nameController.text = user.name;
+                    _emailController.text = user.email;
+                  }
+                }
               });
             },
           ),
@@ -164,6 +175,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 return const Center(child: Text('No user data'));
               }
 
+              // Only sync controllers when switching from edit→view mode
+              // (do NOT set in build — it overwrites user input mid-edit)
               return SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(
@@ -189,7 +202,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 BoxShadow(
                                   color: const Color(
                                     0xFF0A4ED2,
-                                  ).withOpacity(0.18),
+                                  ).withValues(alpha: 0.18),
                                   blurRadius: 24,
                                   offset: const Offset(0, 12),
                                 ),

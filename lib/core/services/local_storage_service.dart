@@ -22,8 +22,19 @@ class LocalStorageService {
     await _preferences.setBool(AppConstants.loginStatusKey, false);
   }
 
+  Future<void> saveUserId(int userId) async {
+    await _preferences.setInt(AppConstants.userIdKey, userId);
+  }
+
+  Future<int?> getUserId() async {
+    return _preferences.getInt(AppConstants.userIdKey);
+  }
+
   Future<bool> isLoggedIn() async {
-    return _preferences.getBool(AppConstants.loginStatusKey) ?? false;
+    final token = _preferences.getString(AppConstants.tokenKey);
+    return token != null &&
+        token.isNotEmpty &&
+        (_preferences.getBool(AppConstants.loginStatusKey) ?? false);
   }
 
   Future<void> saveDarkMode(bool isDarkMode) async {
@@ -38,18 +49,15 @@ class LocalStorageService {
     await _preferences.clear();
   }
 
-  // Profile image path
-  static const String _profileImagePathKey = 'profile_image_path';
-
   Future<void> saveProfileImagePath(String path) async {
-    await _preferences.setString(_profileImagePathKey, path);
+    await _preferences.setString(AppConstants.profileImagePathKey, path);
   }
 
   Future<String?> getProfileImagePath() async {
-    return _preferences.getString(_profileImagePathKey);
+    return _preferences.getString(AppConstants.profileImagePathKey);
   }
 
   Future<void> clearProfileImagePath() async {
-    await _preferences.remove(_profileImagePathKey);
+    await _preferences.remove(AppConstants.profileImagePathKey);
   }
 }

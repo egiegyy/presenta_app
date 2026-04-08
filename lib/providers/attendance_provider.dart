@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:presenta_app/core/services/api_service.dart';
 import 'package:presenta_app/core/services/location_service.dart';
+import 'package:presenta_app/core/utils/exceptions.dart';
 import 'package:presenta_app/models/attendance_model.dart';
+import 'package:presenta_app/services/attendance_service.dart';
 
 class AttendanceProvider extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
-  final LocationService _locationService = LocationService();
+  AttendanceProvider({
+    AttendanceService? attendanceService,
+    LocationService? locationService,
+  }) : _attendanceService = attendanceService ?? AttendanceService(),
+       _locationService = locationService ?? LocationService();
+
+  final AttendanceService _attendanceService;
+  final LocationService _locationService;
 
   List<AttendanceModel> _attendanceHistory = [];
   bool _isLoading = false;
@@ -22,39 +29,42 @@ class AttendanceProvider extends ChangeNotifier {
   bool get hasCheckedOutToday => _hasCheckedOutToday;
   Position? get currentLocation => _currentLocation;
 
+  // =======================
+  // GET HISTORY
+  // =======================
   Future<void> getAttendanceHistory() async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
     try {
-      final response = await _apiService.getHistoryAbsen();
-      _attendanceHistory = response
-          .map((item) => AttendanceModel.fromJson(item))
-          .toList();
+      _setLoading(true);
+      _error = null;
+
+      _attendanceHistory = await _attendanceService.getAttendanceHistory();
 
       _checkTodayStatus();
-
-      _isLoading = false;
-      notifyListeners();
     } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
+      _error = getErrorMessage(e as Exception);
       notifyListeners();
+    } finally {
+      _setLoading(false);
     }
   }
 
+  // =======================
+  // CHECK STATUS HARI INI
+  // =======================
   void _checkTodayStatus() {
     final today = DateTime.now();
     final todayString =
         '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
 
     final todayAttendance = _attendanceHistory
-        .where((attendance) => attendance.date == todayString)
+        .where(
+          (attendance) =>
+              attendance.date.startsWith(todayString),
+        )
         .toList();
 
     if (todayAttendance.isNotEmpty) {
-      final attendance = todayAttendance.first;
+      final attendance = todayAttendance.last;
       _hasCheckedInToday = attendance.checkInTime != null;
       _hasCheckedOutToday = attendance.checkOutTime != null;
     } else {
@@ -62,118 +72,175 @@ class AttendanceProvider extends ChangeNotifier {
       _hasCheckedOutToday = false;
     }
 
-    // Auto Tanpa Keterangan if past 15:00 and no check-in
-    final currentTime = DateTime.now();
-    final cutoffTime = DateTime(
-      currentTime.year,
-      currentTime.month,
-      currentTime.day,
-      15,
-      0,
-    );
-
-    if (currentTime.isAfter(cutoffTime) && !_hasCheckedInToday) {
-      final tanpaKeterangan = AttendanceModel(
-        id: -1,
-        date: todayString,
-        status: 'Tanpa Keterangan',
-      );
-      final existing = _attendanceHistory
-          .where((a) => a.id == -1 && a.date == todayString)
-          .toList();
-      if (existing.isEmpty) {
-        _attendanceHistory.insert(0, tanpaKeterangan);
-      }
-    }
+    notifyListeners();
   }
 
+  // =======================
+  // CHECK IN
+  // =======================
   Future<bool> checkIn(String status, String note) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
     try {
+      _error = null;
+
       final location = await _locationService.getCurrentLocation();
       _currentLocation = location;
 
-      await _apiService.checkIn(
-        location.latitude,
-        location.longitude,
-        status,
-        note,
+      await _attendanceService.checkIn(
+        latitude: location.latitude,
+        longitude: location.longitude,
+        status: status,
+        note: note,
       );
 
-      _hasCheckedInToday = true;
-      _isLoading = false;
-      notifyListeners();
-
-      // Refresh
-      await getAttendanceHistory();
+      await getAttendanceHistory(); // handle loading di dalam
       return true;
     } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
+      _error = getErrorMessage(e as Exception);
       notifyListeners();
       return false;
     }
   }
 
+  // =======================
+  // CHECK OUT
+  // =======================
   Future<bool> checkOut(String note) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
     try {
+      _error = null;
+
       final location = await _locationService.getCurrentLocation();
       _currentLocation = location;
 
-      await _apiService.checkOut(location.latitude, location.longitude, note);
-
-      _hasCheckedOutToday = true;
-      _isLoading = false;
-      notifyListeners();
+      await _attendanceService.checkOut(
+        latitude: location.latitude,
+        longitude: location.longitude,
+        note: note,
+      );
 
       await getAttendanceHistory();
       return true;
     } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
+      _error = getErrorMessage(e as Exception);
       notifyListeners();
       return false;
     }
   }
 
+  // =======================
+  // DELETE
+  // =======================
   Future<bool> deleteAttendance(int id) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
     try {
-      await _apiService.deleteAbsen(id);
-      _isLoading = false;
+      _setLoading(true);
+      _error = null;
+
+      await _attendanceService.deleteAttendance(id);
       await getAttendanceHistory();
+
       return true;
     } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
+      _error = getErrorMessage(e as Exception);
       notifyListeners();
       return false;
+    } finally {
+      _setLoading(false);
     }
   }
 
+  // =======================
+  // LOCATION
+  // =======================
   Future<void> getCurrentLocation() async {
     try {
       final location = await _locationService.getCurrentLocation();
       _currentLocation = location;
       notifyListeners();
     } catch (e) {
-      _error = e.toString();
+      _error = getErrorMessage(e as Exception);
       notifyListeners();
+    }
+  }
+
+  // =======================
+  // IZIN
+  // =======================
+  Future<bool> submitIzin({
+    required String date,
+    required String reason,
+    required String type,
+  }) async {
+    try {
+      _setLoading(true);
+      _error = null;
+
+      await _attendanceService.submitIzin(
+        date: date,
+        reason: reason,
+        type: type,
+      );
+
+      await getAttendanceHistory();
+      return true;
+    } catch (e) {
+      _error = getErrorMessage(e as Exception);
+      notifyListeners();
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // =======================
+  // TODAY
+  // =======================
+  Future<void> loadTodayAttendance() async {
+    try {
+      _setLoading(true);
+      _error = null;
+
+      final today = await _attendanceService.getTodayAttendance();
+
+      if (today != null) {
+        _hasCheckedInToday = today.checkInTime != null;
+        _hasCheckedOutToday = today.checkOutTime != null;
+      }
+
+      notifyListeners();
+    } catch (e) {
+      _error = getErrorMessage(e as Exception);
+      notifyListeners();
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // =======================
+  // STATS
+  // =======================
+  Future<Map<String, dynamic>> getStats() async {
+    try {
+      _setLoading(true);
+      _error = null;
+
+      return await _attendanceService.getAttendanceStats();
+    } catch (e) {
+      _error = getErrorMessage(e as Exception);
+      notifyListeners();
+      return {};
+    } finally {
+      _setLoading(false);
     }
   }
 
   void clearError() {
     _error = null;
     notifyListeners();
+  }
+
+  void _setLoading(bool value) {
+    if (_isLoading != value) {
+      _isLoading = value;
+      notifyListeners();
+    }
   }
 }

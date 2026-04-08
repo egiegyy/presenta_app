@@ -5,7 +5,7 @@ import 'package:presenta_app/presentation/widgets/custom_widgets.dart';
 import 'package:presenta_app/core/constants/app_constants.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -31,11 +31,12 @@ class _LoginPageState extends State<LoginPage> {
         _passwordController.text,
       );
 
+      if (!context.mounted) return;
+
+      // All UI operations after async gap
       if (success) {
         SuccessSnackbar.show(context, AppStrings.loginSuccess);
-        if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/dashboard');
-        }
+        Navigator.of(context).pushReplacementNamed('/dashboard');
       } else {
         ErrorSnackbar.show(context, authProvider.error ?? 'Login failed');
         authProvider.clearError();

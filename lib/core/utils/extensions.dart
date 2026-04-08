@@ -10,12 +10,13 @@ extension StringExtension on String {
     return length >= 6;
   }
 
-  bool isEmpty() {
-    return trim().length == 0;
+  // Named isBlank to avoid conflict with SDK's String.isEmpty getter
+  bool isBlank() {
+    return trim().isEmpty;
   }
 
   String capitalize() {
-    if (isEmpty()) return this;
+    if (isBlank()) return this;
     return '${this[0].toUpperCase()}${substring(1).toLowerCase()}';
   }
 }

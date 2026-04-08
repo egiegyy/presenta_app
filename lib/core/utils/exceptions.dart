@@ -43,7 +43,7 @@ class ValidationException extends AppException {
 }
 
 // Exception handler
-String getErrorMessage(Exception e) {
+String getErrorMessage(Object e) {
   if (e is AppException) {
     return e.message;
   }

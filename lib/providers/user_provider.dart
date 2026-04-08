@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:presenta_app/core/services/api_service.dart';
 import 'package:presenta_app/core/services/local_storage_service.dart';
+import 'package:presenta_app/core/utils/exceptions.dart';
 import 'package:presenta_app/models/user_model.dart';
 import 'package:presenta_app/models/dropdown_models.dart';
+import 'package:presenta_app/services/profile_service.dart';
 
 class UserProvider extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
-  final LocalStorageService _storage = LocalStorageService();
+  UserProvider({
+    ProfileService? profileService,
+    LocalStorageService? localStorageService,
+  }) : _profileService = profileService ?? ProfileService(),
+       _storage = localStorageService ?? LocalStorageService();
+
+  final ProfileService _profileService;
+  final LocalStorageService _storage;
 
   UserModel? _user;
   String? _localImagePath;
@@ -25,49 +32,63 @@ class UserProvider extends ChangeNotifier {
 
   Future<void> getProfile() async {
     try {
-      _isLoading = true;
+      _setLoading(true);
       _error = null;
-      notifyListeners();
 
-      final response = await _apiService.getProfile();
-      debugPrint("PROFILE RESPONSE: $response");
-
-      final data = response['data'] ?? response;
-      _user = UserModel.fromJson(data);
+      _user = await _profileService.getProfile();
 
       // Load local image path if no server photo
       if (_user?.photo == null) {
         _localImagePath = await _storage.getProfileImagePath();
+      } else {
+        _localImagePath = null;
       }
-    } catch (e) {
-      debugPrint("ERROR PROFILE: $e");
-      _error = e.toString().replaceAll('Exception: ', '');
+    } on Exception catch (e) {
+      debugPrint('ERROR PROFILE: $e');
+      _error = getErrorMessage(e);
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      _setLoading(false);
     }
   }
 
   Future<bool> updateProfile(Map<String, dynamic> data) async {
     try {
-      _isLoading = true;
+      _setLoading(true);
       _error = null;
-      notifyListeners();
 
-      final response = await _apiService.editProfile(data);
-      debugPrint("UPDATE PROFILE RESPONSE: $response");
+      final updatedUser = await _profileService.updateProfile(
+        name: data['name']?.toString() ?? '',
+        email: data['email']?.toString() ?? '',
+      );
+      _user = updatedUser;
 
-      final resData = response['data'] ?? response;
-      _user = UserModel.fromJson(resData);
+      // Only upload photo if provided
+      final photo = data['photo']?.toString();
+      if (photo != null && photo.isNotEmpty) {
+        final remotePhoto = await _profileService.updateProfilePhoto(photo);
+        if (remotePhoto != null && _user != null) {
+          _user = UserModel(
+            id: _user!.id,
+            name: _user!.name,
+            email: _user!.email,
+            phone: _user!.phone,
+            photo: remotePhoto,
+            gender: _user!.gender,
+            batch: _user!.batch,
+            training: _user!.training,
+            createdAt: _user!.createdAt,
+          );
+          _localImagePath = null;
+        }
+      }
 
       return true;
-    } catch (e) {
-      debugPrint("ERROR UPDATE PROFILE: $e");
-      _error = e.toString().replaceAll('Exception: ', '');
+    } on Exception catch (e) {
+      debugPrint('ERROR UPDATE PROFILE: $e');
+      _error = getErrorMessage(e);
       return false;
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      _setLoading(false);
     }
   }
 
@@ -80,14 +101,9 @@ class UserProvider extends ChangeNotifier {
   Future<void> getBatches() async {
     try {
       _error = null;
-      final response = await _apiService.getBatches();
-      _batches = response
-          .whereType<Map<String, dynamic>>()
-          .map((item) => BatchModel.fromJson(item))
-          .where((e) => e.name.isNotEmpty)
-          .toList();
-    } catch (e) {
-      _error = e.toString();
+      _batches = await _profileService.getBatches();
+    } on Exception catch (e) {
+      _error = getErrorMessage(e);
       _batches = [];
     }
     notifyListeners();
@@ -96,21 +112,42 @@ class UserProvider extends ChangeNotifier {
   Future<void> getTrainings() async {
     try {
       _error = null;
-      final response = await _apiService.getTrainings();
-      _trainings = response
-          .whereType<Map<String, dynamic>>()
-          .map((item) => TrainingModel.fromJson(item))
-          .where((e) => e.name.isNotEmpty)
-          .toList();
-    } catch (e) {
-      _error = e.toString();
+      _trainings = await _profileService.getTrainings();
+    } on Exception catch (e) {
+      _error = getErrorMessage(e);
       _trainings = [];
     }
     notifyListeners();
   }
 
+  Future<TrainingModel?> getTrainingDetail(int trainingId) async {
+    try {
+      _error = null;
+      return await _profileService.getTrainingDetail(trainingId);
+    } on Exception catch (e) {
+      _error = getErrorMessage(e);
+      return null;
+    }
+  }
+
+  Future<bool> sendDeviceToken(String token) async {
+    try {
+      _error = null;
+      await _profileService.sendDeviceToken(token);
+      return true;
+    } on Exception catch (e) {
+      _error = getErrorMessage(e);
+      return false;
+    }
+  }
+
   void clearError() {
     _error = null;
+    notifyListeners();
+  }
+
+  void _setLoading(bool value) {
+    _isLoading = value;
     notifyListeners();
   }
 }

@@ -1,31 +1,85 @@
 import 'package:http/http.dart' as http;
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:presenta_app/core/services/local_storage_service.dart';
 import 'package:presenta_app/core/constants/app_constants.dart';
+import 'package:presenta_app/core/utils/exceptions.dart';
 
 class ApiService {
-  final LocalStorageService _storage = LocalStorageService();
+  ApiService._internal();
 
-  // ================= COMMON =================
-  dynamic _handleResponse(http.Response response) {
-    debugPrint("STATUS CODE: ${response.statusCode}");
-    debugPrint("RAW BODY: ${response.body}");
+  static final ApiService _instance = ApiService._internal();
+
+  factory ApiService() => _instance;
+
+  final LocalStorageService _storage = LocalStorageService();
+  final http.Client _client = http.Client();
+
+  dynamic _handleResponse(
+    http.Response response, {
+    bool allowEmptyBody = false,
+  }) {
+    debugPrint('STATUS CODE: ${response.statusCode}');
+    debugPrint('RAW BODY: ${response.body}');
+
+    if (allowEmptyBody && response.body.trim().isEmpty) {
+      return <String, dynamic>{};
+    }
 
     dynamic data;
     try {
-      data = jsonDecode(response.body);
+      data = response.body.trim().isEmpty
+          ? <String, dynamic>{}
+          : jsonDecode(response.body);
     } catch (e) {
-      throw Exception("Response bukan JSON: ${response.body}");
+      throw ServerException(
+        statusCode: response.statusCode,
+        message: 'Response API tidak valid.',
+      );
     }
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return data;
+    } else if (response.statusCode == 401) {
+      throw AuthException(
+        message: data is Map<String, dynamic>
+            ? (data['message']?.toString() ?? AppStrings.tokenExpired)
+            : AppStrings.tokenExpired,
+      );
+    } else if (response.statusCode == 422) {
+      throw ValidationException(
+        message: _extractMessage(data) ?? 'Data yang dikirim tidak valid.',
+      );
     } else {
-      throw Exception(
-        data is Map ? data['message'] ?? 'Request failed' : 'Request failed',
+      throw ServerException(
+        statusCode: response.statusCode,
+        message: _extractMessage(data) ?? AppStrings.serverError,
       );
     }
+  }
+
+  String? _extractMessage(dynamic data) {
+    if (data is Map<String, dynamic>) {
+      final message = data['message'];
+      if (message is String && message.trim().isNotEmpty) {
+        return message.trim();
+      }
+
+      final errors = data['errors'];
+      if (errors is Map<String, dynamic>) {
+        for (final value in errors.values) {
+          if (value is List && value.isNotEmpty) {
+            return value.first.toString();
+          }
+          if (value is String && value.trim().isNotEmpty) {
+            return value.trim();
+          }
+        }
+      }
+    }
+
+    return null;
   }
 
   Map<String, String> _headers() {
@@ -35,7 +89,9 @@ class ApiService {
   Future<Map<String, String>> _headersWithAuth() async {
     final token = await _storage.getToken();
     if (token == null || token.isEmpty) {
-      throw Exception('Token not found');
+      throw AuthException(
+        message: 'Token tidak ditemukan. Silakan login ulang.',
+      );
     }
     return {
       'Authorization': 'Bearer $token',
@@ -44,211 +100,119 @@ class ApiService {
     };
   }
 
-  // ================= AUTH =================
-  Future<Map<String, dynamic>> login(String email, String password) async {
+  Future<dynamic> get(
+    String endpoint, {
+    bool requireAuth = false,
+    Map<String, dynamic>? queryParameters,
+  }) async {
     try {
-      final response = await http
-          .post(
-            Uri.parse('${AppConstants.baseUrl}${AppConstants.loginEndpoint}'),
-            headers: _headers(),
-            body: jsonEncode({'email': email, 'password': password}),
+      final uri = Uri.parse('${AppConstants.baseUrl}$endpoint').replace(
+        queryParameters: queryParameters?.map(
+          (key, value) => MapEntry(key, value.toString()),
+        ),
+      );
+
+      final response = await _client
+          .get(
+            uri,
+            headers: requireAuth ? await _headersWithAuth() : _headers(),
           )
           .timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
 
-      final data = _handleResponse(response);
-
-      if (data is Map && data['token'] != null) {
-        await _storage.saveToken(data['token']);
-      }
-
-      return data;
+      return _handleResponse(response);
     } catch (e) {
-      debugPrint("LOGIN ERROR: $e");
-      rethrow;
+      throw _mapException(e);
     }
   }
 
-  Future<Map<String, dynamic>> register(Map<String, dynamic> body) async {
+  Future<dynamic> post(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    bool requireAuth = false,
+  }) async {
     try {
-      final response = await http
+      final response = await _client
           .post(
-            Uri.parse('${AppConstants.baseUrl}${AppConstants.registerEndpoint}'),
-            headers: _headers(),
+            Uri.parse('${AppConstants.baseUrl}$endpoint'),
+            headers: requireAuth ? await _headersWithAuth() : _headers(),
+            body: jsonEncode(body ?? <String, dynamic>{}),
+          )
+          .timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
+
+      return _handleResponse(response);
+    } catch (e) {
+      throw _mapException(e);
+    }
+  }
+
+  Future<dynamic> put(
+    String endpoint, {
+    required Map<String, dynamic> body,
+    bool requireAuth = false,
+  }) async {
+    try {
+      final response = await _client
+          .put(
+            Uri.parse('${AppConstants.baseUrl}$endpoint'),
+            headers: requireAuth ? await _headersWithAuth() : _headers(),
             body: jsonEncode(body),
           )
           .timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
 
       return _handleResponse(response);
     } catch (e) {
-      debugPrint("REGISTER ERROR: $e");
-      rethrow;
+      throw _mapException(e);
     }
   }
 
-  // ================= PROFILE =================
-  Future<Map<String, dynamic>> getProfile() async {
+  Future<dynamic> delete(
+    String endpoint, {
+    bool requireAuth = false,
+    Map<String, dynamic>? queryParameters,
+  }) async {
     try {
-      final response = await http.get(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.profileEndpoint}'),
-        headers: await _headersWithAuth(),
+      final uri = Uri.parse('${AppConstants.baseUrl}$endpoint').replace(
+        queryParameters: queryParameters?.map(
+          (key, value) => MapEntry(key, value.toString()),
+        ),
       );
 
-      return _handleResponse(response);
+      final response = await _client
+          .delete(
+            uri,
+            headers: requireAuth ? await _headersWithAuth() : _headers(),
+          )
+          .timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
+
+      return _handleResponse(response, allowEmptyBody: true);
     } catch (e) {
-      debugPrint("GET PROFILE ERROR: $e");
-      rethrow;
-    }
-  }
-
-  Future<Map<String, dynamic>> editProfile(Map<String, dynamic> body) async {
-    try {
-      final response = await http.put(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.editProfileEndpoint}'),
-        headers: await _headersWithAuth(),
-        body: jsonEncode(body),
-      );
-
-      return _handleResponse(response);
-    } catch (e) {
-      debugPrint("EDIT PROFILE ERROR: $e");
-      rethrow;
-    }
-  }
-
-  // ================= ATTENDANCE =================
-  Future<Map<String, dynamic>> checkIn(
-    double latitude,
-    double longitude,
-    String status,
-    String note,
-  ) async {
-    try {
-      final response = await http.post(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.checkInEndpoint}'),
-        headers: await _headersWithAuth(),
-        body: jsonEncode({
-          'latitude': latitude,
-          'longitude': longitude,
-          'status': status,
-          'note': note,
-        }),
-      );
-
-      return _handleResponse(response);
-    } catch (e) {
-      debugPrint("CHECKIN ERROR: $e");
-      rethrow;
-    }
-  }
-
-  Future<Map<String, dynamic>> checkOut(
-    double latitude,
-    double longitude,
-    String note,
-  ) async {
-    try {
-      final response = await http.post(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.checkOutEndpoint}'),
-        headers: await _headersWithAuth(),
-        body: jsonEncode({
-          'latitude': latitude,
-          'longitude': longitude,
-          'note': note,
-        }),
-      );
-
-      return _handleResponse(response);
-    } catch (e) {
-      debugPrint("CHECKOUT ERROR: $e");
-      rethrow;
-    }
-  }
-
-  // ================= HISTORY =================
-  Future<List<dynamic>> getHistoryAbsen() async {
-    try {
-      final response = await http.get(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.historyAbsenEndpoint}'),
-        headers: await _headersWithAuth(),
-      );
-
-      final data = _handleResponse(response);
-
-      if (data is Map && data['data'] is List) {
-        return data['data'];
-      }
-
-      if (data is List) return data;
-
-      return [];
-    } catch (e) {
-      debugPrint("HISTORY ERROR: $e");
-      rethrow;
-    }
-  }
-
-  // ================= DROPDOWN =================
-  Future<List<dynamic>> getBatches() async {
-    try {
-      final response = await http.get(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.batchesEndpoint}'),
-        headers: _headers(),
-      );
-
-      final data = _handleResponse(response);
-
-      if (data is Map && data['data'] is List) {
-        return data['data'];
-      }
-
-      if (data is List) return data;
-
-      return [];
-    } catch (e) {
-      debugPrint("GET BATCHES ERROR: $e");
-      rethrow;
-    }
-  }
-
-  Future<List<dynamic>> getTrainings() async {
-    try {
-      final response = await http.get(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.trainingsEndpoint}'),
-        headers: _headers(),
-      );
-
-      final data = _handleResponse(response);
-
-      if (data is Map && data['data'] is List) {
-        return data['data'];
-      }
-
-      if (data is List) return data;
-
-      return [];
-    } catch (e) {
-      debugPrint("GET TRAININGS ERROR: $e");
-      rethrow;
-    }
-  }
-
-  // ================= DELETE =================
-  Future<void> deleteAbsen(int id) async {
-    try {
-      final response = await http.delete(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.deleteAbsenEndpoint}?id=$id'),
-        headers: await _headersWithAuth(),
-      );
-
-      _handleResponse(response);
-    } catch (e) {
-      debugPrint("DELETE ERROR: $e");
-      rethrow;
+      throw _mapException(e);
     }
   }
 
   Future<void> logout() async {
     await _storage.clearToken();
+    await _storage.clearProfileImagePath();
+  }
+
+  Exception _mapException(Object error) {
+    if (error is AppException) {
+      return error;
+    }
+    if (error is TimeoutException) {
+      return NetworkException(message: 'Koneksi ke server timeout.');
+    }
+    if (error is http.ClientException) {
+      return NetworkException(message: 'Gagal terhubung ke server.');
+    }
+    if (error is FormatException) {
+      return ServerException(
+        statusCode: 500,
+        message: 'Format response server tidak valid.',
+      );
+    }
+    return AppException(
+      message: error.toString().replaceAll('Exception: ', ''),
+    );
   }
 }
-

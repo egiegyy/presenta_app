@@ -6,7 +6,7 @@ import 'package:presenta_app/presentation/pages/profile_page.dart';
 import 'package:presenta_app/presentation/pages/home_content.dart';
 
 class DashboardPage extends StatefulWidget {
-  const DashboardPage({Key? key}) : super(key: key);
+  const DashboardPage({super.key});
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
@@ -88,14 +88,7 @@ class _DashboardPageState extends State<DashboardPage> {
             child: const Text('Batal'),
           ),
           ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              final authProvider = context.read<AuthProvider>();
-              await authProvider.logout();
-              if (mounted) {
-                Navigator.of(context).pushReplacementNamed('/login');
-              }
-            },
+            onPressed: () => _handleLogout(),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFEF4444),
             ),
@@ -104,5 +97,14 @@ class _DashboardPageState extends State<DashboardPage> {
         ],
       ),
     );
+  }
+
+  Future<void> _handleLogout() async {
+    Navigator.of(context).pop(); // Close dialog
+    final authProvider = context.read<AuthProvider>();
+    await authProvider.logout();
+    if (!mounted) return;
+    // Clear entire nav stack so back button can't return to dashboard
+    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
   }
 }

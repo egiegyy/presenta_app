@@ -22,11 +22,14 @@ class AttendanceModel {
   });
 
   factory AttendanceModel.fromJson(Map<String, dynamic> json) {
-    String? status = json['status'];
+    String? status = json['status']?.toString();
     // Normalize status from API
     if (status == null || status.isEmpty) {
-      status = 'Present'; // Fallback
-    } else if (status.toLowerCase().contains('hadir')) {
+      status = (json['check_in_time'] ?? json['jam_masuk']) != null
+          ? 'Hadir'
+          : 'Tanpa Keterangan';
+    } else if (status.toLowerCase().contains('masuk') ||
+        status.toLowerCase().contains('hadir')) {
       status = 'Hadir';
     } else if (status.toLowerCase().contains('sakit') ||
         status.toLowerCase().contains('izin sakit')) {
@@ -40,13 +43,26 @@ class AttendanceModel {
 
     return AttendanceModel(
       id: json['id'] ?? 0,
-      date: json['date'] ?? json['created_at'] ?? '',
+      date:
+          json['attendance_date']?.toString() ??
+          json['date']?.toString() ??
+          json['created_at']?.toString() ??
+          '',
       checkInTime: json['check_in_time'] ?? json['jam_masuk'],
       checkOutTime: json['check_out_time'] ?? json['jam_keluar'],
-      checkInLocation: json['check_in_location'],
-      checkOutLocation: json['check_out_location'],
+      checkInLocation:
+          json['check_in_address']?.toString() ??
+          json['check_in_location']?.toString() ??
+          json['check_out_address']?.toString() ??
+          json['check_out_location']?.toString(),
+      checkOutLocation:
+          json['check_out_address']?.toString() ??
+          json['check_out_location']?.toString(),
       status: status,
-      note: json['note'] ?? json['reason'],
+      note:
+          json['alasan_izin']?.toString() ??
+          json['note']?.toString() ??
+          json['reason']?.toString(),
     );
   }
 

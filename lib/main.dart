@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:presenta_app/core/services/api_service.dart';
 import 'package:presenta_app/core/services/local_storage_service.dart';
+import 'package:presenta_app/core/services/location_service.dart';
 import 'package:presenta_app/providers/auth_provider.dart';
 import 'package:presenta_app/providers/attendance_provider.dart';
 import 'package:presenta_app/providers/user_provider.dart';
@@ -9,6 +11,9 @@ import 'package:presenta_app/presentation/pages/login_page.dart';
 import 'package:presenta_app/presentation/pages/register_page.dart';
 import 'package:presenta_app/presentation/pages/dashboard_page.dart';
 import 'package:presenta_app/presentation/pages/history_page.dart';
+import 'package:presenta_app/services/attendance_service.dart';
+import 'package:presenta_app/services/auth_service.dart';
+import 'package:presenta_app/services/profile_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,12 +26,34 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final apiService = ApiService();
+    final localStorageService = LocalStorageService();
+    final authService = AuthService(
+      apiService: apiService,
+      localStorageService: localStorageService,
+    );
+    final profileService = ProfileService(apiService: apiService);
+    final attendanceService = AttendanceService(apiService: apiService);
+    final locationService = LocationService();
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => UserProvider()),
-        ChangeNotifierProvider(create: (_) => AttendanceProvider()),
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(authService: authService),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => UserProvider(
+            profileService: profileService,
+            localStorageService: localStorageService,
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => AttendanceProvider(
+            attendanceService: attendanceService,
+            locationService: locationService,
+          ),
+        ),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {

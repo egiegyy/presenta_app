@@ -26,12 +26,15 @@ class UserModel {
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
       email: json['email'] ?? '',
-      phone: json['phone'],
-      photo: json['photo'],
-      gender: json['gender'],
-      batch: json['batch'],
-      training: json['training'],
-      createdAt: json['created_at'] ?? '',
+      phone: json['phone']?.toString(),
+      photo: json['profile_photo']?.toString() ?? json['photo']?.toString(),
+      gender: json['jenis_kelamin']?.toString() ?? json['gender']?.toString(),
+      batch: json['batch']?.toString() ?? json['batch_name']?.toString(),
+      training:
+          json['training']?.toString() ??
+          json['training_name']?.toString() ??
+          json['title']?.toString(),
+      createdAt: json['created_at']?.toString() ?? '',
     );
   }
 

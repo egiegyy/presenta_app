@@ -9,14 +9,14 @@ class GradientButton extends StatelessWidget {
   final Color endColor;
 
   const GradientButton({
-    Key? key,
+    super.key,
     required this.label,
     required this.onPressed,
     this.isLoading = false,
     this.enabled = true,
     this.startColor = const Color(0xFF1E3A8A),
     this.endColor = const Color(0xFF3B82F6),
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +79,7 @@ class CustomTextField extends StatefulWidget {
   final IconData? prefixIcon;
 
   const CustomTextField({
-    Key? key,
+    super.key,
     required this.label,
     required this.hint,
     required this.controller,
@@ -87,7 +87,7 @@ class CustomTextField extends StatefulWidget {
     this.obscureText = false,
     this.validator,
     this.prefixIcon,
-  }) : super(key: key);
+  });
 
   @override
   State<CustomTextField> createState() => _CustomTextFieldState();
@@ -163,11 +163,11 @@ class GlassmorphicCard extends StatelessWidget {
   final double opacity;
 
   const GlassmorphicCard({
-    Key? key,
+    super.key,
     required this.child,
     this.borderRadius = 20,
     this.opacity = 0.8,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -192,8 +192,7 @@ class GlassmorphicCard extends StatelessWidget {
 class LoadingDialog extends StatelessWidget {
   final String message;
 
-  const LoadingDialog({Key? key, this.message = 'Loading...'})
-    : super(key: key);
+  const LoadingDialog({super.key, this.message = 'Loading...'});
 
   @override
   Widget build(BuildContext context) {

@@ -7,7 +7,7 @@ import 'package:presenta_app/core/constants/app_constants.dart';
 import 'package:presenta_app/models/dropdown_models.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({Key? key}) : super(key: key);
+  const RegisterPage({super.key});
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -36,13 +36,17 @@ class _RegisterPageState extends State<RegisterPage> {
   void _loadDropdownData() {
     final userProvider = context.read<UserProvider>();
     userProvider.getBatches();
+    userProvider.getTrainings();
   }
 
   void _onBatchChanged(BatchModel? batch) {
+    final userProvider = context.read<UserProvider>();
     setState(() {
       _selectedBatchId = batch?.id;
       _selectedTrainingId = null;
-      _availableTrainings = batch?.trainings ?? [];
+      _availableTrainings = (batch?.trainings.isNotEmpty ?? false)
+          ? batch!.trainings
+          : userProvider.trainings;
     });
   }
 
@@ -57,10 +61,9 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _handleRegister(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
-      if (_selectedGender == null ||
-          _selectedBatchId == null ||
-          _selectedTrainingId == null) {
-        ErrorSnackbar.show(context, 'Pilih semua dropdown');
+      // Only gender is required by the API; batch/training are optional
+      if (_selectedGender == null) {
+        ErrorSnackbar.show(context, 'Pilih jenis kelamin');
         return;
       }
 
@@ -75,15 +78,17 @@ class _RegisterPageState extends State<RegisterPage> {
         _emailController.text.trim(),
         _passwordController.text,
         _selectedGender!,
-        _selectedBatchId!.toString(),
-        _selectedTrainingId!.toString(),
+        _selectedBatchId,     // optional
+        _selectedTrainingId,  // optional
+        null,                 // profile_photo — optional at registration
       );
 
+      if (!context.mounted) return;
+
+      // All UI operations after async gap
       if (success) {
         SuccessSnackbar.show(context, 'Registrasi berhasil! Silahkan login.');
-        if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/login');
-        }
+        Navigator.of(context).pushReplacementNamed('/login');
       } else {
         ErrorSnackbar.show(
           context,
@@ -231,7 +236,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               ),
                               const SizedBox(height: 10),
                               DropdownButtonFormField<String>(
-                                value: _selectedGender,
+                                initialValue: _selectedGender,
                                 isExpanded: true,
                                 items: const [
                                   DropdownMenuItem(
@@ -255,8 +260,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                   ),
                                 ),
                                 validator: (value) {
-                                  if (value == null)
+                                  if (value == null) {
                                     return 'Pilih jenis kelamin';
+                                  }
                                   return null;
                                 },
                               ),
@@ -279,7 +285,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               Consumer<UserProvider>(
                                 builder: (context, userProvider, _) {
                                   return DropdownButtonFormField<int>(
-                                    value: _selectedBatchId,
+                                    initialValue: _selectedBatchId,
                                     isExpanded: true,
                                     items: userProvider.batches.map((batch) {
                                       return DropdownMenuItem(
@@ -335,7 +341,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               ),
                               const SizedBox(height: 10),
                               DropdownButtonFormField<int>(
-                                value: _selectedTrainingId,
+                                initialValue: _selectedTrainingId,
                                 isExpanded: true,
                                 items: _availableTrainings.map((training) {
                                   return DropdownMenuItem(
