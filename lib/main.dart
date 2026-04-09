@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+<<<<<<< HEAD
 import 'package:presenta_app/core/services/api_service.dart';
+=======
+import 'package:presenta_app/config/localization_config.dart';
+>>>>>>> 77a89f6 (All done but not UI)
 import 'package:presenta_app/core/services/local_storage_service.dart';
 import 'package:presenta_app/core/services/location_service.dart';
 import 'package:presenta_app/providers/auth_provider.dart';
@@ -17,6 +24,8 @@ import 'package:presenta_app/services/profile_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting(LocalizationConfig.dateLocale);
+  Intl.defaultLocale = LocalizationConfig.dateLocale;
   await LocalStorageService.init();
   runApp(const MyApp());
 }
@@ -61,6 +70,13 @@ class MyApp extends StatelessWidget {
             title: 'PRESENTA',
             debugShowCheckedModeBanner: false,
             theme: themeProvider.themeData,
+            locale: LocalizationConfig.defaultLocale,
+            supportedLocales: LocalizationConfig.supportedLocales,
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
             home: const AuthenticationWrapper(),
             routes: {
               '/login': (context) => const LoginPage(),

@@ -44,9 +44,15 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() {
       _selectedBatchId = batch?.id;
       _selectedTrainingId = null;
+<<<<<<< HEAD
       _availableTrainings = (batch?.trainings.isNotEmpty ?? false)
           ? batch!.trainings
           : userProvider.trainings;
+=======
+      _availableTrainings = batch?.trainings.isNotEmpty == true
+          ? batch!.trainings
+          : context.read<UserProvider>().trainings;
+>>>>>>> 77a89f6 (All done but not UI)
     });
   }
 
@@ -102,124 +108,71 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F9FF),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Container(
-          width: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF0A6CFF), Color(0xFF92C7FF), Color(0xFFF5FAFF)],
-            ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back,
-                            color: Colors.white,
-                          ),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                        const SizedBox(width: 8),
-                        const Expanded(
-                          child: Text(
-                            'Create Account',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
+      backgroundColor: AppPalette.backgroundTint,
+      body: AppBackground(
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 24,
                     ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Sign up to start using Presenta with a fresh new UI.',
-                      style: TextStyle(
-                        fontSize: 15,
-                        height: 1.6,
-                        color: Color(0xFFE3F0FF),
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.92),
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
-                            blurRadius: 24,
-                            offset: const Offset(0, 16),
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(24),
+                    child: Form(
+                      key: _formKey,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.arrow_back,
+                                  color: Colors.white,
+                                ),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                              const SizedBox(width: 8),
+                              const Expanded(
+                                child: Text(
+                                  'Create Account',
+                                  style: TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
                           const Text(
-                            'Personal Info',
+                            'Sign up to start using Presenta with a fresh new UI.',
                             style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1E3A8A),
+                              fontSize: 15,
+                              height: 1.6,
+                              color: Color(0xFFE3F0FF),
                             ),
                           ),
-                          const SizedBox(height: 18),
+                          const SizedBox(height: 28),
 
-                          CustomTextField(
-                            label: AppStrings.name,
-                            hint: 'Full Name',
-                            controller: _nameController,
-                            prefixIcon: Icons.person_outlined,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return AppStrings.nameRequired;
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 18),
-
-                          CustomTextField(
-                            label: AppStrings.email,
-                            hint: 'user@example.com',
-                            controller: _emailController,
-                            inputType: TextInputType.emailAddress,
-                            prefixIcon: Icons.email_outlined,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return AppStrings.emailRequired;
-                              }
-                              if (!value.contains('@')) {
-                                return AppStrings.invalidEmail;
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 24),
-
-                          const Text(
-                            'Account Details',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1E3A8A),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.92),
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.08),
+                                  blurRadius: 24,
+                                  offset: const Offset(0, 16),
+                                ),
+                              ],
                             ),
+<<<<<<< HEAD
                           ),
                           const SizedBox(height: 18),
 
@@ -426,40 +379,326 @@ class _RegisterPageState extends State<RegisterPage> {
                           Center(
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
+=======
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+>>>>>>> 77a89f6 (All done but not UI)
                               children: [
                                 const Text(
-                                  AppStrings.haveAccount,
+                                  'Personal Info',
                                   style: TextStyle(
-                                    color: Color(0xFF64748B),
-                                    fontSize: 14,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF1E3A8A),
                                   ),
                                 ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(
-                                      context,
-                                    ).pushReplacementNamed('/login');
+                                const SizedBox(height: 18),
+
+                                CustomTextField(
+                                  label: AppStrings.name,
+                                  hint: 'Full Name',
+                                  controller: _nameController,
+                                  prefixIcon: Icons.person_outlined,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return AppStrings.nameRequired;
+                                    }
+                                    return null;
                                   },
-                                  child: const Text(
-                                    'Login',
-                                    style: TextStyle(
-                                      color: Color(0xFF0A6CFF),
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 14,
+                                ),
+                                const SizedBox(height: 18),
+
+                                CustomTextField(
+                                  label: AppStrings.email,
+                                  hint: 'user@example.com',
+                                  controller: _emailController,
+                                  inputType: TextInputType.emailAddress,
+                                  prefixIcon: Icons.email_outlined,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return AppStrings.emailRequired;
+                                    }
+                                    if (!value.contains('@')) {
+                                      return AppStrings.invalidEmail;
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 24),
+
+                                const Text(
+                                  'Account Details',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF1E3A8A),
+                                  ),
+                                ),
+                                const SizedBox(height: 18),
+
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      AppStrings.gender,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF475569),
+                                      ),
                                     ),
+                                    const SizedBox(height: 10),
+                                    DropdownButtonFormField<String>(
+                                      value: _selectedGender,
+                                      isExpanded: true,
+                                      items: const [
+                                        DropdownMenuItem(
+                                          value: 'L',
+                                          child: Text('Laki-laki'),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'P',
+                                          child: Text('Perempuan'),
+                                        ),
+                                      ],
+                                      onChanged: (value) {
+                                        setState(() => _selectedGender = value);
+                                      },
+                                      decoration: InputDecoration(
+                                        filled: true,
+                                        fillColor: const Color(0xFFF3F8FF),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                          borderSide: BorderSide.none,
+                                        ),
+                                      ),
+                                      validator: (value) {
+                                        if (value == null)
+                                          return 'Pilih jenis kelamin';
+                                        return null;
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 18),
+
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      AppStrings.batch,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF475569),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Consumer<UserProvider>(
+                                      builder: (context, userProvider, _) {
+                                        return DropdownButtonFormField<int>(
+                                          value: _selectedBatchId,
+                                          isExpanded: true,
+                                          items: userProvider.batches.map((
+                                            batch,
+                                          ) {
+                                            return DropdownMenuItem(
+                                              value: batch.id,
+                                              child: Text(
+                                                batch.batchNumber != null
+                                                    ? 'Batch ${batch.batchNumber}'
+                                                    : (batch.name.isEmpty
+                                                          ? 'Batch ${batch.id}'
+                                                          : batch.name),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            );
+                                          }).toList(),
+                                          onChanged: (value) {
+                                            final batch = userProvider.batches
+                                                .firstWhere(
+                                                  (item) => item.id == value,
+                                                  orElse: () => BatchModel(
+                                                    id: 0,
+                                                    name: '',
+                                                  ),
+                                                );
+                                            _onBatchChanged(
+                                              batch.id != 0 ? batch : null,
+                                            );
+                                          },
+                                          decoration: InputDecoration(
+                                            filled: true,
+                                            fillColor: const Color(0xFFF3F8FF),
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              borderSide: BorderSide.none,
+                                            ),
+                                          ),
+                                          validator: (value) {
+                                            if (value == null)
+                                              return 'Pilih batch';
+                                            return null;
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 18),
+
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      AppStrings.training,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF475569),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Consumer<UserProvider>(
+                                      builder: (context, userProvider, _) {
+                                        final trainings =
+                                            _availableTrainings.isEmpty
+                                            ? userProvider.trainings
+                                            : _availableTrainings;
+
+                                        return DropdownButtonFormField<int>(
+                                          value: _selectedTrainingId,
+                                          isExpanded: true,
+                                          items: trainings.map((training) {
+                                            return DropdownMenuItem(
+                                              value: training.id,
+                                              child: Text(
+                                                training.name,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            );
+                                          }).toList(),
+                                          onChanged: (value) {
+                                            setState(() {
+                                              _selectedTrainingId = value;
+                                            });
+                                          },
+                                          decoration: InputDecoration(
+                                            filled: true,
+                                            fillColor: const Color(0xFFF3F8FF),
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              borderSide: BorderSide.none,
+                                            ),
+                                          ),
+                                          validator: (value) {
+                                            if (value == null) {
+                                              return 'Pilih training';
+                                            }
+                                            return null;
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 18),
+
+                                CustomTextField(
+                                  label: AppStrings.password,
+                                  hint: 'Min. 6 characters',
+                                  controller: _passwordController,
+                                  obscureText: true,
+                                  prefixIcon: Icons.lock_outlined,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return AppStrings.passwordRequired;
+                                    }
+                                    if (value.length < 6) {
+                                      return AppStrings.passwordTooShort;
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 18),
+
+                                CustomTextField(
+                                  label: AppStrings.confirmPassword,
+                                  hint: 'Confirm password',
+                                  controller: _confirmPasswordController,
+                                  obscureText: true,
+                                  prefixIcon: Icons.lock_outlined,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Confirm password required';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 26),
+
+                                Consumer<AuthProvider>(
+                                  builder: (context, authProvider, _) {
+                                    return SizedBox(
+                                      width: double.infinity,
+                                      child: GradientButton(
+                                        label: AppStrings.register,
+                                        isLoading: authProvider.isLoading,
+                                        onPressed: () =>
+                                            _handleRegister(context),
+                                        startColor: const Color(0xFF0A6CFF),
+                                        endColor: const Color(0xFF5DA8FF),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                const SizedBox(height: 18),
+
+                                Center(
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text(
+                                        AppStrings.haveAccount,
+                                        style: TextStyle(
+                                          color: Color(0xFF64748B),
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(
+                                            context,
+                                          ).pushReplacementNamed('/login');
+                                        },
+                                        child: const Text(
+                                          'Login',
+                                          style: TextStyle(
+                                            color: Color(0xFF0A6CFF),
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
                           ),
+                          const SizedBox(height: 32),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 32),
-                  ],
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         ),
       ),

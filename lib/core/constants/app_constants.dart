@@ -12,11 +12,18 @@ class AppConstants {
   static const String registerEndpoint = '/api/register';
   static const String profileEndpoint = '/api/profile';
   static const String editProfileEndpoint = '/api/profile';
+<<<<<<< HEAD
   static const String profilePhotoEndpoint = '/api/profile/photo';
   static const String checkInEndpoint = '/api/absen-check-in';
   static const String checkOutEndpoint = '/api/absen-check-out';
   static const String izinEndpoint = '/api/izin';
   static const String historyAbsenEndpoint = '/api/history-absen';
+=======
+  static const String editProfilePhotoEndpoint = '/api/profile/photo';
+  static const String checkInEndpoint = '/api/absen/check-in';
+  static const String checkOutEndpoint = '/api/absen/check-out';
+  static const String historyAbsenEndpoint = '/api/absen/history';
+>>>>>>> 77a89f6 (All done but not UI)
   static const String batchesEndpoint = '/api/batches';
   static const String trainingsEndpoint = '/api/trainings';
   static const String deleteAbsenEndpoint = '/api/delete-absen';
@@ -38,6 +45,9 @@ class AppConstants {
     'Izin Sakit',
     'Izin Lainnya',
   ];
+
+  static const String attendanceStatusPresent = 'masuk';
+  static const String attendanceStatusPermission = 'izin';
 }
 
 class AppStrings {

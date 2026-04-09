@@ -47,157 +47,141 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5FAFF),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Container(
-          width: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF0A6CFF), Color(0xFF92C7FF), Color(0xFFF5FAFF)],
-            ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                'Welcome Back',
-                                style: TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                'Sign in to continue using Presenta.',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  height: 1.5,
-                                  color: Color(0xFFE7F2FF),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+      backgroundColor: AppPalette.backgroundTint,
+      body: AppBackground(
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 28,
                     ),
-                    const SizedBox(height: 30),
-
-                    GlassmorphicCard(
+                    child: Form(
+                      key: _formKey,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          const SizedBox(height: 12),
                           const Text(
-                            AppStrings.login,
+                            'Welcome Back',
                             style: TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF0A6CFF),
+                              fontSize: 34,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
                             ),
                           ),
                           const SizedBox(height: 8),
                           const Text(
-                            'Use your registered account to access attendance features.',
+                            'Sign in to continue using Presenta.',
                             style: TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF6B7C93),
-                              height: 1.6,
+                              fontSize: 15,
+                              height: 1.5,
+                              color: Color(0xFFE7F2FF),
                             ),
                           ),
-                          const SizedBox(height: 30),
-
-                          CustomTextField(
-                            label: AppStrings.email,
-                            hint: 'user@example.com',
-                            controller: _emailController,
-                            inputType: TextInputType.emailAddress,
-                            prefixIcon: Icons.email_outlined,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return AppStrings.emailRequired;
-                              }
-                              if (!value.contains('@')) {
-                                return AppStrings.invalidEmail;
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 20),
-
-                          CustomTextField(
-                            label: AppStrings.password,
-                            hint: 'Enter your password',
-                            controller: _passwordController,
-                            obscureText: true,
-                            prefixIcon: Icons.lock_outlined,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return AppStrings.passwordRequired;
-                              }
-                              if (value.length < 6) {
-                                return AppStrings.passwordTooShort;
-                              }
-                              return null;
-                            },
-                          ),
                           const SizedBox(height: 32),
-
-                          Consumer<AuthProvider>(
-                            builder: (context, authProvider, _) {
-                              return SizedBox(
-                                width: double.infinity,
-                                child: GradientButton(
-                                  label: AppStrings.login,
-                                  isLoading: authProvider.isLoading,
-                                  onPressed: () => _handleLogin(context),
-                                  startColor: const Color(0xFF0A6CFF),
-                                  endColor: const Color(0xFF5DA8FF),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 20),
-
-                          Center(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                          GlassmorphicCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 const Text(
-                                  AppStrings.noAccount,
+                                  AppStrings.login,
                                   style: TextStyle(
-                                    color: Color(0xFF64748B),
-                                    fontSize: 14,
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppPalette.brandBlueDark,
                                   ),
                                 ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(
-                                      context,
-                                    ).pushNamed('/register');
-                                  },
-                                  child: const Text(
-                                    'Register',
-                                    style: TextStyle(
-                                      color: Color(0xFF0A6CFF),
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 14,
-                                    ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Use your registered account to access attendance features.',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: AppPalette.textSecondary,
+                                    height: 1.6,
                                   ),
+                                ),
+                                const SizedBox(height: 30),
+                                CustomTextField(
+                                  label: AppStrings.email,
+                                  hint: 'user@example.com',
+                                  controller: _emailController,
+                                  inputType: TextInputType.emailAddress,
+                                  prefixIcon: Icons.email_outlined,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return AppStrings.emailRequired;
+                                    }
+                                    if (!value.contains('@')) {
+                                      return AppStrings.invalidEmail;
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 20),
+                                CustomTextField(
+                                  label: AppStrings.password,
+                                  hint: 'Enter your password',
+                                  controller: _passwordController,
+                                  obscureText: true,
+                                  prefixIcon: Icons.lock_outlined,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return AppStrings.passwordRequired;
+                                    }
+                                    if (value.length < 6) {
+                                      return AppStrings.passwordTooShort;
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 32),
+                                Consumer<AuthProvider>(
+                                  builder: (context, authProvider, _) {
+                                    return SizedBox(
+                                      width: double.infinity,
+                                      child: GradientButton(
+                                        label: AppStrings.login,
+                                        isLoading: authProvider.isLoading,
+                                        onPressed: () => _handleLogin(context),
+                                        startColor: AppPalette.brandBlueDark,
+                                        endColor: AppPalette.brandBlue,
+                                      ),
+                                    );
+                                  },
+                                ),
+                                const SizedBox(height: 20),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Text(
+                                      AppStrings.noAccount,
+                                      style: TextStyle(
+                                        color: AppPalette.textSecondary,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(
+                                          context,
+                                        ).pushNamed('/register');
+                                      },
+                                      child: const Text(
+                                        'Register',
+                                        style: TextStyle(
+                                          color: AppPalette.brandBlueDark,
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -205,11 +189,10 @@ class _LoginPageState extends State<LoginPage> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
-                  ],
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         ),
       ),

@@ -1,14 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'dart:async';
-import 'package:presenta_app/providers/auth_provider.dart';
-import 'package:presenta_app/providers/attendance_provider.dart';
-import 'package:presenta_app/providers/user_provider.dart';
-import 'package:presenta_app/presentation/widgets/custom_widgets.dart';
+import 'package:provider/provider.dart';
+import 'package:presenta_app/config/localization_config.dart';
 import 'package:presenta_app/core/constants/app_constants.dart';
-import 'package:presenta_app/presentation/pages/checkin_form.dart'; // Temp
+import 'package:presenta_app/presentation/pages/checkin_form.dart';
+import 'package:presenta_app/presentation/widgets/custom_widgets.dart';
+import 'package:presenta_app/providers/attendance_provider.dart';
+import 'package:presenta_app/providers/auth_provider.dart';
+import 'package:presenta_app/providers/user_provider.dart';
 
 class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
@@ -18,9 +20,12 @@ class HomeContent extends StatefulWidget {
 }
 
 class _HomeContentState extends State<HomeContent> {
+<<<<<<< HEAD
   Timer? _clockTimer;
   GoogleMapController? _mapController;
 
+=======
+>>>>>>> 77a89f6 (All done but not UI)
   @override
   void initState() {
     super.initState();
@@ -61,21 +66,35 @@ class _HomeContentState extends State<HomeContent> {
         (_) => DateTime.now(),
       ),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const Text('--:--:--');
+        if (!snapshot.hasData) {
+          return const Text('--:--:--');
+        }
+
         final now = snapshot.data!;
+
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               DateFormat('HH:mm:ss').format(now),
               style: const TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF0A4ED2),
+                fontSize: 38,
+                fontWeight: FontWeight.w800,
+                color: AppPalette.brandBlueDark,
+                letterSpacing: 1.2,
               ),
             ),
+            const SizedBox(height: 6),
             Text(
-              DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(now),
-              style: const TextStyle(fontSize: 16, color: Color(0xFF64748B)),
+              DateFormat(
+                'EEEE, dd MMMM yyyy',
+                LocalizationConfig.dateLocale,
+              ).format(now),
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: AppPalette.textSecondary,
+              ),
             ),
           ],
         );
@@ -91,71 +110,103 @@ class _HomeContentState extends State<HomeContent> {
       },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 8),
             Consumer3<AuthProvider, UserProvider, AttendanceProvider>(
               builder:
                   (context, authProvider, userProvider, attendanceProvider, _) {
                     final user = userProvider.user ?? authProvider.currentUser;
+
                     return GlassmorphicCard(
-                      child: Column(
+                      child: Row(
                         children: [
-                          // Profile Photo
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _getGreeting(),
+                                  style: const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppPalette.brandBlueDark,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  user?.name ?? '-',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppPalette.textSecondary,
+                                  ),
+                                ),
+                                if (user?.batch != null ||
+                                    user?.training != null) ...[
+                                  const SizedBox(height: 12),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppPalette.backgroundTint,
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: Text(
+                                      '${user?.batch ?? '-'} | ${user?.training ?? '-'}',
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppPalette.brandBlueDark,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
                           Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: const Color(0xFF0A4ED2),
+                                color: AppPalette.brandBlueDark,
                                 width: 3,
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppPalette.brandBlue.withValues(
+                                    alpha: 0.18,
+                                  ),
+                                  blurRadius: 22,
+                                  offset: const Offset(0, 12),
+                                ),
+                              ],
                             ),
                             child: CircleAvatar(
-                              radius: 45,
+                              radius: 34,
                               backgroundColor: Colors.white,
                               backgroundImage: user?.photo != null
                                   ? NetworkImage(user!.photo!)
                                   : null,
                               child: user?.photo == null
                                   ? const Icon(
-                                      Icons.person,
-                                      size: 45,
-                                      color: Color(0xFF0A4ED2),
+                                      Icons.person_rounded,
+                                      size: 34,
+                                      color: AppPalette.brandBlueDark,
                                     )
                                   : null,
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          Text(
-                            '${_getGreeting()}, ${user?.name ?? ''}',
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF0A4ED2),
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          if (user?.batch != null ||
-                              user?.training != null) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              '${user?.batch ?? ''} | ${user?.training ?? ''}',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF64748B),
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                          const SizedBox(height: 12),
-                          _realTimeClock(),
                         ],
                       ),
                     );
                   },
             ),
+<<<<<<< HEAD
             const SizedBox(height: 24),
             Consumer<AttendanceProvider>(
               builder: (context, attendanceProvider, _) {
@@ -190,144 +241,240 @@ class _HomeContentState extends State<HomeContent> {
                               ),
                             },
                           ),
+=======
+            const SizedBox(height: 18),
+            GlassmorphicCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Waktu Sekarang',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppPalette.textSecondary,
+                    ),
+>>>>>>> 77a89f6 (All done but not UI)
                   ),
-                );
-              },
+                  const SizedBox(height: 10),
+                  _realTimeClock(),
+                ],
+              ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
             Consumer<AttendanceProvider>(
               builder: (context, attendanceProvider, _) {
-                final hasCheckedIn = attendanceProvider.hasCheckedInToday;
-                final hasCheckedOut = attendanceProvider.hasCheckedOutToday;
+                final presentCount = _countStatuses(attendanceProvider, const [
+                  'Hadir',
+                ]);
+                final permissionCount = _countStatuses(
+                  attendanceProvider,
+                  const ['Izin', 'Izin Sakit'],
+                );
+                final absentCount = _countStatuses(attendanceProvider, const [
+                  'Tanpa Keterangan',
+                ]);
+
                 return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const Text(
+                      'Status Kehadiran',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
-                          child: GradientButton(
-                            label: hasCheckedIn ? 'Sudah Check In' : 'Check In',
-                            isLoading: attendanceProvider.isLoading,
-                            enabled: !hasCheckedIn,
-                            onPressed: () => _handleCheckIn(context),
-                            startColor: hasCheckedIn
-                                ? Colors.grey
-                                : const Color(0xFF10B981),
-                            endColor: hasCheckedIn
-                                ? Colors.grey
-                                : const Color(0xFF34D399),
+                          child: AttendanceSummaryCard(
+                            label: 'Hadir',
+                            value: '$presentCount',
+                            icon: Icons.check_circle_rounded,
+                            backgroundColor: AppPalette.pastelGreen,
+                            borderColor: AppPalette.pastelGreenBorder,
+                            textColor: AppPalette.pastelGreenText,
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: GradientButton(
-                            label: hasCheckedOut
-                                ? 'Sudah Check Out'
-                                : 'Check Out',
-                            isLoading: attendanceProvider.isLoading,
-                            enabled: !hasCheckedOut,
-                            onPressed: () => _handleCheckOut(context),
-                            startColor: hasCheckedOut
-                                ? Colors.grey
-                                : const Color(0xFFEF4444),
-                            endColor: hasCheckedOut
-                                ? Colors.grey
-                                : const Color(0xFFF87171),
+                          child: AttendanceSummaryCard(
+                            label: 'Izin',
+                            value: '$permissionCount',
+                            icon: Icons.assignment_turned_in_rounded,
+                            backgroundColor: AppPalette.pastelYellow,
+                            borderColor: AppPalette.pastelYellowBorder,
+                            textColor: AppPalette.pastelYellowText,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: AttendanceSummaryCard(
+                            label: 'Tidak hadir',
+                            value: '$absentCount',
+                            icon: Icons.cancel_rounded,
+                            backgroundColor: AppPalette.pastelRed,
+                            borderColor: AppPalette.pastelRedBorder,
+                            textColor: AppPalette.pastelRedText,
                           ),
                         ),
                       ],
                     ),
-                    if (hasCheckedIn || hasCheckedOut)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 16),
-                        child: GlassmorphicCard(
-                          child: Column(
-                            children: [
-                              const Text(
-                                'Status Hari Ini',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF0A4ED2),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  if (hasCheckedIn)
-                                    const StatusPill(
-                                      label: '✓ Check In',
-                                      color: Color(0xFF10B981),
-                                    ),
-                                  if (hasCheckedOut) ...[
-                                    const SizedBox(width: 8),
-                                    const StatusPill(
-                                      label: '✓ Check Out',
-                                      color: Color(0xFF10B981),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
                   ],
                 );
               },
             ),
-            const SizedBox(height: 24),
-            // Stats
-            Row(
-              children: [
-                Expanded(
-                  child: _statCard('Total Hadir', Icons.check_circle, context),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _statCard('Status Hari Ini', Icons.today, context),
-                ),
-              ],
+            const SizedBox(height: 18),
+            Consumer<AttendanceProvider>(
+              builder: (context, attendanceProvider, _) {
+                final location = attendanceProvider.currentLocation;
+                final hasCheckedIn = attendanceProvider.hasCheckedInToday;
+                final hasCheckedOut = attendanceProvider.hasCheckedOutToday;
+
+                return GlassmorphicCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Presensi Hari Ini',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: AppPalette.brandBlueDark,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Lihat posisi Anda dan lakukan check in atau check out dari section yang sama.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.5,
+                          color: AppPalette.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: 240,
+                          child: location == null
+                              ? Container(
+                                  color: AppPalette.backgroundTint,
+                                  child: const Center(
+                                    child: CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation(
+                                        AppPalette.brandBlueDark,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : GoogleMap(
+                                  initialCameraPosition: CameraPosition(
+                                    target: LatLng(
+                                      location.latitude,
+                                      location.longitude,
+                                    ),
+                                    zoom: AppConstants.defaultMapZoom,
+                                  ),
+                                  myLocationEnabled: true,
+                                  myLocationButtonEnabled: true,
+                                  markers: {
+                                    Marker(
+                                      markerId: const MarkerId('current'),
+                                      position: LatLng(
+                                        location.latitude,
+                                        location.longitude,
+                                      ),
+                                      infoWindow: const InfoWindow(
+                                        title: 'Lokasi Anda',
+                                      ),
+                                    ),
+                                  },
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GradientButton(
+                              label: hasCheckedIn
+                                  ? 'Sudah Check In'
+                                  : 'Check In',
+                              isLoading: attendanceProvider.isLoading,
+                              enabled: !hasCheckedIn,
+                              onPressed: () => _handleCheckIn(context),
+                              startColor: hasCheckedIn
+                                  ? Colors.grey
+                                  : const Color(0xFF20B26B),
+                              endColor: hasCheckedIn
+                                  ? Colors.grey
+                                  : const Color(0xFF59D59B),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: GradientButton(
+                              label: hasCheckedOut
+                                  ? 'Sudah Check Out'
+                                  : 'Check Out',
+                              isLoading: attendanceProvider.isLoading,
+                              enabled: !hasCheckedOut,
+                              onPressed: () => _handleCheckOut(context),
+                              startColor: hasCheckedOut
+                                  ? Colors.grey
+                                  : const Color(0xFFD94A4A),
+                              endColor: hasCheckedOut
+                                  ? Colors.grey
+                                  : const Color(0xFFF27C7C),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (hasCheckedIn || hasCheckedOut) ...[
+                        const SizedBox(height: 16),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: [
+                            if (hasCheckedIn)
+                              const StatusPill(
+                                label: 'Check In aktif',
+                                color: AppPalette.pastelGreenText,
+                                backgroundColor: AppPalette.pastelGreen,
+                                borderColor: AppPalette.pastelGreenBorder,
+                              ),
+                            if (hasCheckedOut)
+                              const StatusPill(
+                                label: 'Check Out aktif',
+                                color: AppPalette.pastelRedText,
+                                backgroundColor: AppPalette.pastelRed,
+                                borderColor: AppPalette.pastelRedBorder,
+                              ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              },
             ),
-            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
 
-  Widget _statCard(String title, IconData icon, BuildContext context) {
-    return GlassmorphicCard(
-      child: Consumer<AttendanceProvider>(
-        builder: (context, provider, _) {
-          final status = provider.hasCheckedInToday
-              ? 'Sudah Masuk'
-              : 'Belum Masuk';
-          return Column(
-            children: [
-              Icon(icon, size: 32, color: const Color(0xFF0A4ED2)),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-              ),
-              Text(
-                title == 'Total Hadir'
-                    ? '${provider.attendanceHistory.length}'
-                    : status,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: provider.hasCheckedInToday
-                      ? const Color(0xFF10B981)
-                      : const Color(0xFFEF4444),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
+  int _countStatuses(AttendanceProvider provider, List<String> statuses) {
+    return provider.attendanceHistory
+        .where(
+          (attendance) => statuses.contains(attendance.getAttendanceStatus()),
+        )
+        .length;
   }
 
   void _handleCheckIn(BuildContext context) {
@@ -340,17 +487,47 @@ class _HomeContentState extends State<HomeContent> {
     final noteController = TextEditingController();
     showDialog(
       context: context,
+<<<<<<< HEAD
       builder: (dialogContext) => AlertDialog(
         title: const Text('Check Out'),
+=======
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text(
+          'Check Out',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: AppPalette.brandBlueDark,
+          ),
+        ),
+>>>>>>> 77a89f6 (All done but not UI)
         content: TextFormField(
           controller: noteController,
-          decoration: const InputDecoration(hintText: 'Catatan (opsional)'),
+          decoration: InputDecoration(
+            hintText: 'Catatan (opsional)',
+            filled: true,
+            fillColor: AppPalette.backgroundTint,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+          ),
           maxLines: 3,
         ),
         actions: [
           TextButton(
+<<<<<<< HEAD
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Batal'),
+=======
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              'Batal',
+              style: TextStyle(color: AppPalette.textSecondary),
+            ),
+>>>>>>> 77a89f6 (All done but not UI)
           ),
           ElevatedButton(
             onPressed: () async {
@@ -372,6 +549,13 @@ class _HomeContentState extends State<HomeContent> {
                 );
               }
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppPalette.brandBlueDark,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
             child: const Text('Check Out'),
           ),
         ],
@@ -383,21 +567,33 @@ class _HomeContentState extends State<HomeContent> {
 class StatusPill extends StatelessWidget {
   final String label;
   final Color color;
+  final Color backgroundColor;
+  final Color borderColor;
 
+<<<<<<< HEAD
   const StatusPill({super.key, required this.label, required this.color});
+=======
+  const StatusPill({
+    Key? key,
+    required this.label,
+    required this.color,
+    required this.backgroundColor,
+    required this.borderColor,
+  }) : super(key: key);
+>>>>>>> 77a89f6 (All done but not UI)
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+        border: Border.all(color: borderColor),
       ),
       child: Text(
         label,
-        style: TextStyle(fontWeight: FontWeight.w600, color: color),
+        style: TextStyle(fontWeight: FontWeight.w700, color: color),
       ),
     );
   }

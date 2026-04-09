@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+<<<<<<< HEAD
+=======
+import 'package:presenta_app/core/constants/app_constants.dart';
+import 'package:presenta_app/core/services/api_payload_builder.dart';
+import 'package:presenta_app/core/services/api_service.dart';
+>>>>>>> 77a89f6 (All done but not UI)
 import 'package:presenta_app/core/services/location_service.dart';
 import 'package:presenta_app/core/utils/exceptions.dart';
 import 'package:presenta_app/models/attendance_model.dart';
@@ -34,6 +40,7 @@ class AttendanceProvider extends ChangeNotifier {
   // =======================
   Future<void> getAttendanceHistory() async {
     try {
+<<<<<<< HEAD
       _setLoading(true);
       _error = null;
 
@@ -42,6 +49,19 @@ class AttendanceProvider extends ChangeNotifier {
       _checkTodayStatus();
     } catch (e) {
       _error = getErrorMessage(e as Exception);
+=======
+      final response = await _apiService.getHistoryAbsen();
+      _attendanceHistory = response
+          .whereType<Map<String, dynamic>>()
+          .map(AttendanceModel.fromJson)
+          .toList();
+
+      _checkTodayStatus();
+    } catch (e) {
+      _error = getErrorMessage(e is Exception ? e : Exception(e.toString()));
+    } finally {
+      _isLoading = false;
+>>>>>>> 77a89f6 (All done but not UI)
       notifyListeners();
     } finally {
       _setLoading(false);
@@ -52,10 +72,7 @@ class AttendanceProvider extends ChangeNotifier {
   // CHECK STATUS HARI INI
   // =======================
   void _checkTodayStatus() {
-    final today = DateTime.now();
-    final todayString =
-        '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-
+    final todayString = ApiPayloadBuilder.formatDate(DateTime.now());
     final todayAttendance = _attendanceHistory
         .where(
           (attendance) =>
@@ -63,16 +80,27 @@ class AttendanceProvider extends ChangeNotifier {
         )
         .toList();
 
+<<<<<<< HEAD
     if (todayAttendance.isNotEmpty) {
       final attendance = todayAttendance.last;
       _hasCheckedInToday = attendance.checkInTime != null;
       _hasCheckedOutToday = attendance.checkOutTime != null;
     } else {
+=======
+    if (todayAttendance.isEmpty) {
+>>>>>>> 77a89f6 (All done but not UI)
       _hasCheckedInToday = false;
       _hasCheckedOutToday = false;
+      return;
     }
 
+<<<<<<< HEAD
     notifyListeners();
+=======
+    final attendance = todayAttendance.first;
+    _hasCheckedInToday = attendance.checkInTime != null;
+    _hasCheckedOutToday = attendance.checkOutTime != null;
+>>>>>>> 77a89f6 (All done but not UI)
   }
 
   // =======================
@@ -85,6 +113,7 @@ class AttendanceProvider extends ChangeNotifier {
       final location = await _locationService.getCurrentLocation();
       _currentLocation = location;
 
+<<<<<<< HEAD
       await _attendanceService.checkIn(
         latitude: location.latitude,
         longitude: location.longitude,
@@ -96,6 +125,20 @@ class AttendanceProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _error = getErrorMessage(e as Exception);
+=======
+      await _apiService.checkIn(
+        latitude: location.latitude,
+        longitude: location.longitude,
+        status: _mapStatusForApi(status),
+        note: note,
+      );
+
+      await getAttendanceHistory();
+      return true;
+    } catch (e) {
+      _error = getErrorMessage(e is Exception ? e : Exception(e.toString()));
+      _isLoading = false;
+>>>>>>> 77a89f6 (All done but not UI)
       notifyListeners();
       return false;
     }
@@ -111,16 +154,27 @@ class AttendanceProvider extends ChangeNotifier {
       final location = await _locationService.getCurrentLocation();
       _currentLocation = location;
 
+<<<<<<< HEAD
       await _attendanceService.checkOut(
         latitude: location.latitude,
         longitude: location.longitude,
         note: note,
+=======
+      await _apiService.checkOut(
+        latitude: location.latitude,
+        longitude: location.longitude,
+>>>>>>> 77a89f6 (All done but not UI)
       );
 
       await getAttendanceHistory();
       return true;
     } catch (e) {
+<<<<<<< HEAD
       _error = getErrorMessage(e as Exception);
+=======
+      _error = getErrorMessage(e is Exception ? e : Exception(e.toString()));
+      _isLoading = false;
+>>>>>>> 77a89f6 (All done but not UI)
       notifyListeners();
       return false;
     }
@@ -131,15 +185,24 @@ class AttendanceProvider extends ChangeNotifier {
   // =======================
   Future<bool> deleteAttendance(int id) async {
     try {
+<<<<<<< HEAD
       _setLoading(true);
       _error = null;
 
       await _attendanceService.deleteAttendance(id);
+=======
+      await _apiService.deleteAbsen(id);
+>>>>>>> 77a89f6 (All done but not UI)
       await getAttendanceHistory();
 
       return true;
     } catch (e) {
+<<<<<<< HEAD
       _error = getErrorMessage(e as Exception);
+=======
+      _error = getErrorMessage(e is Exception ? e : Exception(e.toString()));
+      _isLoading = false;
+>>>>>>> 77a89f6 (All done but not UI)
       notifyListeners();
       return false;
     } finally {
@@ -156,11 +219,16 @@ class AttendanceProvider extends ChangeNotifier {
       _currentLocation = location;
       notifyListeners();
     } catch (e) {
+<<<<<<< HEAD
       _error = getErrorMessage(e as Exception);
+=======
+      _error = getErrorMessage(e is Exception ? e : Exception(e.toString()));
+>>>>>>> 77a89f6 (All done but not UI)
       notifyListeners();
     }
   }
 
+<<<<<<< HEAD
   // =======================
   // IZIN
   // =======================
@@ -229,6 +297,17 @@ class AttendanceProvider extends ChangeNotifier {
       return {};
     } finally {
       _setLoading(false);
+=======
+  String _mapStatusForApi(String status) {
+    switch (status) {
+      case AppStrings.hadir:
+        return AppConstants.attendanceStatusPresent;
+      case AppStrings.izinSakit:
+      case AppStrings.izinLainnya:
+        return AppConstants.attendanceStatusPermission;
+      default:
+        return AppConstants.attendanceStatusPresent;
+>>>>>>> 77a89f6 (All done but not UI)
     }
   }
 

@@ -1,12 +1,18 @@
 class BatchModel {
   final int id;
   final String name;
+  final String? batchNumber;
+  final String? startDate;
+  final String? endDate;
   final String? description;
   final List<TrainingModel> trainings;
 
   BatchModel({
     required this.id,
     required this.name,
+    this.batchNumber,
+    this.startDate,
+    this.endDate,
     this.description,
     this.trainings = const [],
   });
@@ -31,6 +37,9 @@ class BatchModel {
     return BatchModel(
       id: _parseInt(rawId),
       name: _parseString(rawName),
+      batchNumber: _parseNullableString(json['batch_ke']),
+      startDate: _parseNullableString(json['start_date']),
+      endDate: _parseNullableString(json['end_date']),
       description: _parseNullableString(
         json['description'] ?? json['desc'] ?? json['keterangan'],
       ),
@@ -42,6 +51,9 @@ class BatchModel {
     return {
       'id': id,
       'name': name,
+      'batch_ke': batchNumber,
+      'start_date': startDate,
+      'end_date': endDate,
       'description': description,
       'trainings': trainings.map((t) => t.toJson()).toList(),
     };

@@ -1,5 +1,53 @@
 import 'package:flutter/material.dart';
 
+class AppPalette {
+  static const Color brandBlue = Color(0xFF0A6CFF);
+  static const Color brandBlueDark = Color(0xFF0A4ED2);
+  static const Color brandBlueSoft = Color(0xFF92C7FF);
+  static const Color backgroundTint = Color(0xFFF5FAFF);
+
+  static const Color pastelGreen = Color(0xFFE7F8EF);
+  static const Color pastelGreenBorder = Color(0xFFB7E8CB);
+  static const Color pastelGreenText = Color(0xFF169B62);
+
+  static const Color pastelYellow = Color(0xFFFFF4D9);
+  static const Color pastelYellowBorder = Color(0xFFF4D58D);
+  static const Color pastelYellowText = Color(0xFFC98308);
+
+  static const Color pastelRed = Color(0xFFFDE7E7);
+  static const Color pastelRedBorder = Color(0xFFF4B8B8);
+  static const Color pastelRedText = Color(0xFFD94A4A);
+
+  static const Color textPrimary = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF64748B);
+}
+
+class AppBackground extends StatelessWidget {
+  final Widget child;
+
+  const AppBackground({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppPalette.brandBlue,
+            AppPalette.brandBlueSoft,
+            AppPalette.backgroundTint,
+          ],
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
 class GradientButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
@@ -14,9 +62,15 @@ class GradientButton extends StatelessWidget {
     required this.onPressed,
     this.isLoading = false,
     this.enabled = true,
+<<<<<<< HEAD
     this.startColor = const Color(0xFF1E3A8A),
     this.endColor = const Color(0xFF3B82F6),
   });
+=======
+    this.startColor = AppPalette.brandBlueDark,
+    this.endColor = AppPalette.brandBlue,
+  }) : super(key: key);
+>>>>>>> 77a89f6 (All done but not UI)
 
   @override
   Widget build(BuildContext context) {
@@ -24,10 +78,10 @@ class GradientButton extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [startColor, endColor],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
             color: startColor.withValues(alpha: 0.3),
@@ -40,7 +94,7 @@ class GradientButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: isLoading || !enabled ? null : onPressed,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(18),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
             child: Center(
@@ -58,7 +112,7 @@ class GradientButton extends StatelessWidget {
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
             ),
@@ -112,7 +166,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF334155),
+            color: AppPalette.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
@@ -124,13 +178,14 @@ class _CustomTextFieldState extends State<CustomTextField> {
           decoration: InputDecoration(
             hintText: widget.hint,
             prefixIcon: widget.prefixIcon != null
-                ? Icon(widget.prefixIcon, color: const Color(0xFF1E3A8A))
+                ? Icon(widget.prefixIcon)
                 : null,
+            prefixIconColor: AppPalette.brandBlueDark,
             suffixIcon: widget.obscureText
                 ? IconButton(
                     icon: Icon(
                       _obscureText ? Icons.visibility_off : Icons.visibility,
-                      color: const Color(0xFF1E3A8A),
+                      color: AppPalette.brandBlueDark,
                     ),
                     onPressed: () {
                       setState(() {
@@ -140,12 +195,19 @@ class _CustomTextFieldState extends State<CustomTextField> {
                   )
                 : null,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(18),
               borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF1E3A8A), width: 2),
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(
+                color: AppPalette.brandBlueDark,
+                width: 2,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(color: Color(0xFFDCE7FF)),
             ),
             fillColor: Colors.white,
             filled: true,
@@ -204,7 +266,7 @@ class LoadingDialog extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation(Color(0xFF1E3A8A)),
+                valueColor: AlwaysStoppedAnimation(AppPalette.brandBlueDark),
               ),
               const SizedBox(height: 16),
               Text(
@@ -212,7 +274,7 @@ class LoadingDialog extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1E3A8A),
+                  color: AppPalette.brandBlueDark,
                 ),
               ),
             ],
@@ -246,6 +308,62 @@ class SuccessSnackbar {
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+}
+
+class AttendanceSummaryCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color backgroundColor;
+  final Color borderColor;
+  final Color textColor;
+
+  const AttendanceSummaryCard({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.backgroundColor,
+    required this.borderColor,
+    required this.textColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: textColor, size: 20),
+          const SizedBox(height: 14),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: textColor,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+            ),
+          ),
+        ],
       ),
     );
   }

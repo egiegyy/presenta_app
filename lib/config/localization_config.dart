@@ -62,5 +62,6 @@ class LocalizationConfig {
   // Supported locales
   static const supportedLocales = [Locale('en', 'US'), Locale('id', 'ID')];
 
-  static const defaultLocale = Locale('en', 'US');
+  static const defaultLocale = Locale('id', 'ID');
+  static const dateLocale = 'id';
 }
