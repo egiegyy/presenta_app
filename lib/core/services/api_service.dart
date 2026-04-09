@@ -1,73 +1,21 @@
-<<<<<<< HEAD
-import 'package:http/http.dart' as http;
-import 'dart:async';
-=======
->>>>>>> 77a89f6 (All done but not UI)
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:presenta_app/core/constants/app_constants.dart';
-<<<<<<< HEAD
-import 'package:presenta_app/core/utils/exceptions.dart';
-=======
 import 'package:presenta_app/core/services/api_payload_builder.dart';
 import 'package:presenta_app/core/services/local_storage_service.dart';
 import 'package:presenta_app/core/utils/exceptions.dart';
 import 'package:presenta_app/models/auth_session_model.dart';
->>>>>>> 77a89f6 (All done but not UI)
 
 class ApiService {
-  ApiService._internal();
+  ApiService({http.Client? client, LocalStorageService? storage})
+    : _client = client ?? http.Client(),
+      _storage = storage ?? LocalStorageService();
 
-<<<<<<< HEAD
-  static final ApiService _instance = ApiService._internal();
+  final http.Client _client;
+  final LocalStorageService _storage;
 
-  factory ApiService() => _instance;
-
-  final LocalStorageService _storage = LocalStorageService();
-  final http.Client _client = http.Client();
-
-  dynamic _handleResponse(
-    http.Response response, {
-    bool allowEmptyBody = false,
-  }) {
-    debugPrint('STATUS CODE: ${response.statusCode}');
-    debugPrint('RAW BODY: ${response.body}');
-
-    if (allowEmptyBody && response.body.trim().isEmpty) {
-      return <String, dynamic>{};
-    }
-
-    dynamic data;
-    try {
-      data = response.body.trim().isEmpty
-          ? <String, dynamic>{}
-          : jsonDecode(response.body);
-    } catch (e) {
-      throw ServerException(
-        statusCode: response.statusCode,
-        message: 'Response API tidak valid.',
-      );
-    }
-
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return data;
-    } else if (response.statusCode == 401) {
-      throw AuthException(
-        message: data is Map<String, dynamic>
-            ? (data['message']?.toString() ?? AppStrings.tokenExpired)
-            : AppStrings.tokenExpired,
-      );
-    } else if (response.statusCode == 422) {
-      throw ValidationException(
-        message: _extractMessage(data) ?? 'Data yang dikirim tidak valid.',
-      );
-    } else {
-      throw ServerException(
-        statusCode: response.statusCode,
-        message: _extractMessage(data) ?? AppStrings.serverError,
-=======
   dynamic _handleResponse(
     http.Response response, {
     bool allowConflict = false,
@@ -77,12 +25,13 @@ class ApiService {
 
     dynamic data;
     try {
-      data = jsonDecode(response.body);
+      data = response.body.trim().isEmpty
+          ? <String, dynamic>{}
+          : jsonDecode(response.body);
     } catch (_) {
       throw ServerException(
         statusCode: response.statusCode,
         message: 'Response bukan JSON',
->>>>>>> 77a89f6 (All done but not UI)
       );
     }
 
@@ -91,9 +40,7 @@ class ApiService {
       return data;
     }
 
-    final message = data is Map<String, dynamic>
-        ? (data['message'] ?? 'Request failed').toString()
-        : 'Request failed';
+    final message = _extractMessage(data) ?? 'Request failed';
 
     if (response.statusCode == 401) {
       throw AuthException(message: message);
@@ -136,13 +83,7 @@ class ApiService {
   Future<Map<String, String>> _headersWithAuth() async {
     final token = await _storage.getToken();
     if (token == null || token.isEmpty) {
-<<<<<<< HEAD
-      throw AuthException(
-        message: 'Token tidak ditemukan. Silakan login ulang.',
-      );
-=======
       throw AuthException(message: 'Token not found');
->>>>>>> 77a89f6 (All done but not UI)
     }
 
     return {
@@ -152,66 +93,39 @@ class ApiService {
     };
   }
 
-<<<<<<< HEAD
   Future<dynamic> get(
     String endpoint, {
     bool requireAuth = false,
     Map<String, dynamic>? queryParameters,
   }) async {
-=======
-  Future<AuthSessionModel> login(String email, String password) async {
->>>>>>> 77a89f6 (All done but not UI)
-    try {
-      final uri = Uri.parse('${AppConstants.baseUrl}$endpoint').replace(
-        queryParameters: queryParameters?.map(
-          (key, value) => MapEntry(key, value.toString()),
-        ),
-      );
+    final uri = Uri.parse('${AppConstants.baseUrl}$endpoint').replace(
+      queryParameters: queryParameters?.map(
+        (key, value) => MapEntry(key, value.toString()),
+      ),
+    );
 
-      final response = await _client
-          .get(
-            uri,
-            headers: requireAuth ? await _headersWithAuth() : _headers(),
-          )
-          .timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
+    final response = await _client
+        .get(uri, headers: requireAuth ? await _headersWithAuth() : _headers())
+        .timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
 
-<<<<<<< HEAD
-      return _handleResponse(response);
-    } catch (e) {
-      throw _mapException(e);
-=======
-      final data = _handleResponse(response);
-      final session = AuthSessionModel.fromJson(
-        data is Map<String, dynamic> ? data : <String, dynamic>{},
-      );
-      await _storage.saveToken(session.token);
-      return session;
-    } catch (e) {
-      debugPrint('LOGIN ERROR: $e');
-      rethrow;
->>>>>>> 77a89f6 (All done but not UI)
-    }
+    return _handleResponse(response);
   }
 
   Future<dynamic> post(
     String endpoint, {
     Map<String, dynamic>? body,
     bool requireAuth = false,
+    bool allowConflict = false,
   }) async {
-    try {
-      final response = await _client
-          .post(
-<<<<<<< HEAD
-            Uri.parse('${AppConstants.baseUrl}$endpoint'),
-            headers: requireAuth ? await _headersWithAuth() : _headers(),
-            body: jsonEncode(body ?? <String, dynamic>{}),
-          )
-          .timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
+    final response = await _client
+        .post(
+          Uri.parse('${AppConstants.baseUrl}$endpoint'),
+          headers: requireAuth ? await _headersWithAuth() : _headers(),
+          body: jsonEncode(body ?? <String, dynamic>{}),
+        )
+        .timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
 
-      return _handleResponse(response);
-    } catch (e) {
-      throw _mapException(e);
-    }
+    return _handleResponse(response, allowConflict: allowConflict);
   }
 
   Future<dynamic> put(
@@ -219,27 +133,15 @@ class ApiService {
     required Map<String, dynamic> body,
     bool requireAuth = false,
   }) async {
-    try {
-      final response = await _client
-          .put(
-            Uri.parse('${AppConstants.baseUrl}$endpoint'),
-            headers: requireAuth ? await _headersWithAuth() : _headers(),
-=======
-            Uri.parse(
-              '${AppConstants.baseUrl}${AppConstants.registerEndpoint}',
-            ),
-            headers: _headers(),
->>>>>>> 77a89f6 (All done but not UI)
-            body: jsonEncode(body),
-          )
-          .timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
+    final response = await _client
+        .put(
+          Uri.parse('${AppConstants.baseUrl}$endpoint'),
+          headers: requireAuth ? await _headersWithAuth() : _headers(),
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
 
-      final data = _handleResponse(response);
-      return data is Map<String, dynamic> ? data : <String, dynamic>{};
-    } catch (e) {
-<<<<<<< HEAD
-      throw _mapException(e);
-    }
+    return _handleResponse(response);
   }
 
   Future<dynamic> delete(
@@ -247,73 +149,62 @@ class ApiService {
     bool requireAuth = false,
     Map<String, dynamic>? queryParameters,
   }) async {
-=======
-      debugPrint('REGISTER ERROR: $e');
-      rethrow;
+    final uri = Uri.parse('${AppConstants.baseUrl}$endpoint').replace(
+      queryParameters: queryParameters?.map(
+        (key, value) => MapEntry(key, value.toString()),
+      ),
+    );
+
+    final response = await _client
+        .delete(uri, headers: requireAuth ? await _headersWithAuth() : _headers())
+        .timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
+
+    return _handleResponse(response);
+  }
+
+  Future<AuthSessionModel> login(String email, String password) async {
+    final data = await post(
+      AppConstants.loginEndpoint,
+      body: {'email': email, 'password': password},
+    );
+
+    final session = AuthSessionModel.fromJson(
+      data is Map<String, dynamic> ? data : <String, dynamic>{},
+    );
+
+    if (session.token.isNotEmpty) {
+      await _storage.saveToken(session.token);
     }
+
+    return session;
+  }
+
+  Future<Map<String, dynamic>> register(Map<String, dynamic> body) async {
+    final data = await post(AppConstants.registerEndpoint, body: body);
+    return data is Map<String, dynamic> ? data : <String, dynamic>{};
   }
 
   Future<Map<String, dynamic>> getProfile() async {
->>>>>>> 77a89f6 (All done but not UI)
-    try {
-      final uri = Uri.parse('${AppConstants.baseUrl}$endpoint').replace(
-        queryParameters: queryParameters?.map(
-          (key, value) => MapEntry(key, value.toString()),
-        ),
-      );
-
-<<<<<<< HEAD
-      final response = await _client
-          .delete(
-            uri,
-            headers: requireAuth ? await _headersWithAuth() : _headers(),
-          )
-          .timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
-
-      return _handleResponse(response, allowEmptyBody: true);
-    } catch (e) {
-      throw _mapException(e);
-=======
-      final data = _handleResponse(response);
-      return data is Map<String, dynamic> ? data : <String, dynamic>{};
-    } catch (e) {
-      debugPrint('GET PROFILE ERROR: $e');
-      rethrow;
-    }
+    final data = await get(AppConstants.profileEndpoint, requireAuth: true);
+    return data is Map<String, dynamic> ? data : <String, dynamic>{};
   }
 
   Future<Map<String, dynamic>> editProfile(Map<String, dynamic> body) async {
-    try {
-      final response = await http.put(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.editProfileEndpoint}'),
-        headers: await _headersWithAuth(),
-        body: jsonEncode(body),
-      );
-
-      final data = _handleResponse(response);
-      return data is Map<String, dynamic> ? data : <String, dynamic>{};
-    } catch (e) {
-      debugPrint('EDIT PROFILE ERROR: $e');
-      rethrow;
-    }
+    final data = await put(
+      AppConstants.editProfileEndpoint,
+      body: body,
+      requireAuth: true,
+    );
+    return data is Map<String, dynamic> ? data : <String, dynamic>{};
   }
 
   Future<Map<String, dynamic>> updateProfilePhoto(String base64Photo) async {
-    try {
-      final response = await http.put(
-        Uri.parse(
-          '${AppConstants.baseUrl}${AppConstants.editProfilePhotoEndpoint}',
-        ),
-        headers: await _headersWithAuth(),
-        body: jsonEncode({'profile_photo': base64Photo}),
-      );
-
-      final data = _handleResponse(response);
-      return data is Map<String, dynamic> ? data : <String, dynamic>{};
-    } catch (e) {
-      debugPrint('EDIT PROFILE PHOTO ERROR: $e');
-      rethrow;
-    }
+    final data = await put(
+      AppConstants.editProfilePhotoEndpoint,
+      body: {'profile_photo': base64Photo},
+      requireAuth: true,
+    );
+    return data is Map<String, dynamic> ? data : <String, dynamic>{};
   }
 
   Future<Map<String, dynamic>> checkIn({
@@ -343,13 +234,12 @@ class ApiService {
         body['alasan_izin'] = note!.trim();
       }
 
-      final response = await http.post(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.checkInEndpoint}'),
-        headers: await _headersWithAuth(),
-        body: jsonEncode(body),
+      final data = await post(
+        AppConstants.checkInEndpoint,
+        body: body,
+        requireAuth: true,
+        allowConflict: true,
       );
-
-      final data = _handleResponse(response, allowConflict: true);
       return data is Map<String, dynamic> ? data : <String, dynamic>{};
     } catch (e) {
       debugPrint('CHECKIN ERROR: $e');
@@ -367,20 +257,21 @@ class ApiService {
         latitude,
         longitude,
       );
-      final response = await http.post(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.checkOutEndpoint}'),
-        headers: await _headersWithAuth(),
-        body: jsonEncode({
+
+      final data = await post(
+        AppConstants.checkOutEndpoint,
+        requireAuth: true,
+        allowConflict: true,
+        body: {
           'attendance_date': ApiPayloadBuilder.formatDate(now),
           'check_out': ApiPayloadBuilder.formatTime(now),
           'check_out_lat': latitude,
           'check_out_lng': longitude,
           'check_out_location': coordinate,
           'check_out_address': coordinate,
-        }),
+        },
       );
 
-      final data = _handleResponse(response, allowConflict: true);
       return data is Map<String, dynamic> ? data : <String, dynamic>{};
     } catch (e) {
       debugPrint('CHECKOUT ERROR: $e');
@@ -390,14 +281,11 @@ class ApiService {
 
   Future<List<dynamic>> getHistoryAbsen() async {
     try {
-      final response = await http.get(
-        Uri.parse(
-          '${AppConstants.baseUrl}${AppConstants.historyAbsenEndpoint}',
-        ),
-        headers: await _headersWithAuth(),
+      final data = await get(
+        AppConstants.historyAbsenEndpoint,
+        requireAuth: true,
       );
 
-      final data = _handleResponse(response);
       if (data is Map<String, dynamic> && data['data'] is List) {
         return data['data'] as List<dynamic>;
       }
@@ -413,12 +301,8 @@ class ApiService {
 
   Future<List<dynamic>> getBatches() async {
     try {
-      final response = await http.get(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.batchesEndpoint}'),
-        headers: _headers(),
-      );
+      final data = await get(AppConstants.batchesEndpoint);
 
-      final data = _handleResponse(response);
       if (data is Map<String, dynamic> && data['data'] is List) {
         return data['data'] as List<dynamic>;
       }
@@ -434,12 +318,8 @@ class ApiService {
 
   Future<List<dynamic>> getTrainings() async {
     try {
-      final response = await http.get(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.trainingsEndpoint}'),
-        headers: _headers(),
-      );
+      final data = await get(AppConstants.trainingsEndpoint);
 
-      final data = _handleResponse(response);
       if (data is Map<String, dynamic> && data['data'] is List) {
         return data['data'] as List<dynamic>;
       }
@@ -455,48 +335,17 @@ class ApiService {
 
   Future<void> deleteAbsen(int id) async {
     try {
-      final response = await http.delete(
-        Uri.parse(
-          '${AppConstants.baseUrl}${AppConstants.deleteAbsenEndpoint}?id=$id',
-        ),
-        headers: await _headersWithAuth(),
+      await delete(
+        '${AppConstants.deleteAbsenEndpoint}/$id',
+        requireAuth: true,
       );
-
-      _handleResponse(response);
     } catch (e) {
       debugPrint('DELETE ERROR: $e');
       rethrow;
->>>>>>> 77a89f6 (All done but not UI)
     }
   }
 
   Future<void> logout() async {
-<<<<<<< HEAD
-    await _storage.clearToken();
-    await _storage.clearProfileImagePath();
-  }
-
-  Exception _mapException(Object error) {
-    if (error is AppException) {
-      return error;
-    }
-    if (error is TimeoutException) {
-      return NetworkException(message: 'Koneksi ke server timeout.');
-    }
-    if (error is http.ClientException) {
-      return NetworkException(message: 'Gagal terhubung ke server.');
-    }
-    if (error is FormatException) {
-      return ServerException(
-        statusCode: 500,
-        message: 'Format response server tidak valid.',
-      );
-    }
-    return AppException(
-      message: error.toString().replaceAll('Exception: ', ''),
-    );
-=======
     await _storage.clear();
->>>>>>> 77a89f6 (All done but not UI)
   }
 }

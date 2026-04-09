@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 class AppPalette {
   static const Color brandBlue = Color(0xFF0A6CFF);
@@ -62,15 +62,9 @@ class GradientButton extends StatelessWidget {
     required this.onPressed,
     this.isLoading = false,
     this.enabled = true,
-<<<<<<< HEAD
-    this.startColor = const Color(0xFF1E3A8A),
-    this.endColor = const Color(0xFF3B82F6),
-  });
-=======
     this.startColor = AppPalette.brandBlueDark,
     this.endColor = AppPalette.brandBlue,
-  }) : super(key: key);
->>>>>>> 77a89f6 (All done but not UI)
+  });
 
   @override
   Widget build(BuildContext context) {

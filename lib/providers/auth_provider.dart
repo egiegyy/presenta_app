@@ -1,9 +1,4 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
-=======
-import 'package:presenta_app/core/services/api_service.dart';
-import 'package:presenta_app/core/services/local_storage_service.dart';
->>>>>>> 77a89f6 (All done but not UI)
 import 'package:presenta_app/core/utils/exceptions.dart';
 import 'package:presenta_app/models/user_model.dart';
 import 'package:presenta_app/services/auth_service.dart';
@@ -26,13 +21,12 @@ class AuthProvider extends ChangeNotifier {
 
   Future<bool> login(String email, String password) async {
     try {
-<<<<<<< HEAD
       _setLoading(true);
       _error = null;
 
       _currentUser = await _authService.login(email: email, password: password);
       _isLoggedIn = true;
-      notifyListeners(); // explicitly rebuild Consumers after state change
+      notifyListeners();
       return true;
     } on Exception catch (e) {
       _error = getErrorMessage(e);
@@ -41,18 +35,6 @@ class AuthProvider extends ChangeNotifier {
       return false;
     } finally {
       _setLoading(false);
-=======
-      final session = await _apiService.login(email, password);
-      _isLoggedIn = true;
-      _currentUser = session.user;
-      return true;
-    } catch (e) {
-      _error = getErrorMessage(e is Exception ? e : Exception(e.toString()));
-      return false;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
->>>>>>> 77a89f6 (All done but not UI)
     }
   }
 
@@ -66,7 +48,6 @@ class AuthProvider extends ChangeNotifier {
     String? profilePhotoBase64,
   ) async {
     try {
-<<<<<<< HEAD
       _setLoading(true);
       _error = null;
 
@@ -85,29 +66,10 @@ class AuthProvider extends ChangeNotifier {
       return false;
     } finally {
       _setLoading(false);
-=======
-      await _apiService.register({
-        'name': name,
-        'email': email,
-        'password': password,
-        'jenis_kelamin': gender,
-        'batch_id': int.tryParse(batch),
-        'training_id': int.tryParse(training),
-      });
-
-      return true;
-    } catch (e) {
-      _error = getErrorMessage(e is Exception ? e : Exception(e.toString()));
-      return false;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
->>>>>>> 77a89f6 (All done but not UI)
     }
   }
 
   Future<void> checkLoginStatus() async {
-<<<<<<< HEAD
     try {
       final hasSession = await _authService.hasValidSession();
       if (!hasSession) {
@@ -123,26 +85,6 @@ class AuthProvider extends ChangeNotifier {
       _isLoggedIn = false;
       _currentUser = null;
       _error = null;
-=======
-    final token = await _storage.getToken();
-    if (token == null || token.isEmpty) {
-      _isLoggedIn = false;
-      _currentUser = null;
-      notifyListeners();
-      return;
->>>>>>> 77a89f6 (All done but not UI)
-    }
-
-    try {
-      final profileResponse = await _apiService.getProfile();
-      _currentUser = UserModel.fromJson(
-        profileResponse['data'] ?? profileResponse,
-      );
-      _isLoggedIn = true;
-    } catch (_) {
-      _isLoggedIn = false;
-      _currentUser = null;
-      await _storage.clearToken();
     }
 
     notifyListeners();
@@ -155,8 +97,7 @@ class AuthProvider extends ChangeNotifier {
       _currentUser = null;
       _isLoggedIn = false;
       _error = null;
-<<<<<<< HEAD
-      notifyListeners(); // rebuild so AuthWrapper routes to login
+      notifyListeners();
     } on Exception catch (e) {
       _error = getErrorMessage(e);
     } finally {
@@ -198,14 +139,6 @@ class AuthProvider extends ChangeNotifier {
     } finally {
       _setLoading(false);
     }
-=======
-    } catch (e) {
-      _error = getErrorMessage(e is Exception ? e : Exception(e.toString()));
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
->>>>>>> 77a89f6 (All done but not UI)
   }
 
   void clearError() {

@@ -1,16 +1,12 @@
-import 'dart:convert';
-<<<<<<< HEAD
-=======
+﻿import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:presenta_app/core/constants/app_constants.dart';
-import 'package:presenta_app/core/services/local_storage_service.dart';
 import 'package:presenta_app/presentation/widgets/custom_widgets.dart';
 import 'package:presenta_app/providers/user_provider.dart';
->>>>>>> 77a89f6 (All done but not UI)
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -36,23 +32,12 @@ class _ProfilePageState extends State<ProfilePage> {
   void _loadProfile() {
     final userProvider = context.read<UserProvider>();
     userProvider.getProfile().then((_) {
-<<<<<<< HEAD
-      // Populate controllers once after data is fetched (not on every build)
-      if (mounted && !_isEditing) {
-        final user = context.read<UserProvider>().user;
-        if (user != null) {
-          _nameController.text = user.name;
-          _emailController.text = user.email;
-        }
-      }
-=======
       if (!mounted || userProvider.user == null) {
         return;
       }
 
       _nameController.text = userProvider.user!.name;
       _emailController.text = userProvider.user!.email;
->>>>>>> 77a89f6 (All done but not UI)
     });
     userProvider.getBatches();
     userProvider.getTrainings();
@@ -67,13 +52,8 @@ class _ProfilePageState extends State<ProfilePage> {
         _selectedImage = File(pickedFile.path);
         _isEditing = true;
       });
-<<<<<<< HEAD
-      await context.read<UserProvider>().saveLocalImagePath(pickedFile.path);
-=======
 
-      final storage = LocalStorageService();
-      await storage.saveProfileImagePath(pickedFile.path);
->>>>>>> 77a89f6 (All done but not UI)
+      await context.read<UserProvider>().saveLocalImagePath(pickedFile.path);
     }
   }
 
@@ -153,17 +133,11 @@ class _ProfilePageState extends State<ProfilePage> {
       base64Photo = await _imageToBase64(_selectedImage!);
     }
 
-<<<<<<< HEAD
-    final success = await userProvider.updateProfile(updateData);
-    if (!mounted) return;
-
-=======
     final success = await userProvider.updateProfile(
       name: _nameController.text.trim(),
       email: _emailController.text.trim(),
       base64Photo: base64Photo,
     );
->>>>>>> 77a89f6 (All done but not UI)
     if (success) {
       SuccessSnackbar.show(context, 'Profil berhasil diupdate');
       setState(() => _isEditing = false);
@@ -174,55 +148,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        title: const Text(
-          AppStrings.profile,
-          style: TextStyle(fontWeight: FontWeight.w700, color: Colors.white),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(_isEditing ? Icons.close : Icons.edit),
-            onPressed: () {
-              setState(() {
-                _isEditing = !_isEditing;
-                if (!_isEditing) {
-                  _selectedImage = null;
-                  // Re-sync controllers to server data after cancelling edit
-                  final user = context.read<UserProvider>().user;
-                  if (user != null) {
-                    _nameController.text = user.name;
-                    _emailController.text = user.email;
-                  }
-                }
-              });
-            },
-          ),
-        ],
-      ),
-      body: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF0A6CFF), Color(0xFF92C7FF), Color(0xFFF5FAFF)],
-          ),
-        ),
-        child: SafeArea(
-          child: Consumer<UserProvider>(
-            builder: (context, userProvider, _) {
-              if (userProvider.isLoading && userProvider.user == null) {
-                return const Center(child: CircularProgressIndicator());
-              }
-=======
     return Consumer<UserProvider>(
       builder: (context, userProvider, _) {
         if (userProvider.isLoading && userProvider.user == null) {
@@ -232,23 +157,12 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           );
         }
->>>>>>> 77a89f6 (All done but not UI)
 
         final user = userProvider.user;
         if (user == null) {
           return const Center(child: Text('No user data'));
         }
 
-<<<<<<< HEAD
-              // Only sync controllers when switching from edit→view mode
-              // (do NOT set in build — it overwrites user input mid-edit)
-              return SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 18,
-                ),
-=======
         return SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
@@ -256,7 +170,6 @@ class _ProfilePageState extends State<ProfilePage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               GlassmorphicCard(
->>>>>>> 77a89f6 (All done but not UI)
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -287,33 +200,43 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _isEditing = !_isEditing;
-                              if (!_isEditing) {
-                                _selectedImage = null;
-                              }
-                            });
-                          },
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppPalette.brandBlueDark,
-                            side: const BorderSide(color: Color(0xFFD0E1FF)),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 12,
+                        Flexible(
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: OutlinedButton.icon(
+                                onPressed: () {
+                                  setState(() {
+                                    _isEditing = !_isEditing;
+                                    if (!_isEditing) {
+                                      _selectedImage = null;
+                                    }
+                                  });
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppPalette.brandBlueDark,
+                                  side: const BorderSide(
+                                    color: Color(0xFFD0E1FF),
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 12,
+                                  ),
+                                ),
+                                icon: Icon(
+                                  _isEditing
+                                      ? Icons.close_rounded
+                                      : Icons.edit_rounded,
+                                  size: 18,
+                                ),
+                                label: Text(_isEditing ? 'Batal' : 'Edit'),
+                              ),
                             ),
                           ),
-                          icon: Icon(
-                            _isEditing
-                                ? Icons.close_rounded
-                                : Icons.edit_rounded,
-                            size: 18,
-                          ),
-                          label: Text(_isEditing ? 'Batal' : 'Edit'),
                         ),
                       ],
                     ),
@@ -331,15 +254,9 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                               boxShadow: [
                                 BoxShadow(
-<<<<<<< HEAD
-                                  color: const Color(
-                                    0xFF0A4ED2,
-                                  ).withValues(alpha: 0.18),
-=======
                                   color: AppPalette.brandBlue.withValues(
                                     alpha: 0.18,
                                   ),
->>>>>>> 77a89f6 (All done but not UI)
                                   blurRadius: 24,
                                   offset: const Offset(0, 14),
                                 ),

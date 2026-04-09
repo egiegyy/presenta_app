@@ -95,7 +95,8 @@ class _CheckinFormPageState extends State<CheckinFormPage> {
         backgroundColor: const Color(0xFF0A6CFF),
         foregroundColor: Colors.white,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

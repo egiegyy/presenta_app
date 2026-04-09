@@ -1,4 +1,4 @@
-class AppConstants {
+﻿class AppConstants {
   // API Configuration
   static const String baseUrl = 'https://appabsensi.mobileprojp.com';
   static const String tokenKey = 'auth_token';
@@ -12,21 +12,15 @@ class AppConstants {
   static const String registerEndpoint = '/api/register';
   static const String profileEndpoint = '/api/profile';
   static const String editProfileEndpoint = '/api/profile';
-<<<<<<< HEAD
-  static const String profilePhotoEndpoint = '/api/profile/photo';
-  static const String checkInEndpoint = '/api/absen-check-in';
-  static const String checkOutEndpoint = '/api/absen-check-out';
-  static const String izinEndpoint = '/api/izin';
-  static const String historyAbsenEndpoint = '/api/history-absen';
-=======
   static const String editProfilePhotoEndpoint = '/api/profile/photo';
+  static const String profilePhotoEndpoint = editProfilePhotoEndpoint;
   static const String checkInEndpoint = '/api/absen/check-in';
   static const String checkOutEndpoint = '/api/absen/check-out';
+  static const String izinEndpoint = '/api/izin';
   static const String historyAbsenEndpoint = '/api/absen/history';
->>>>>>> 77a89f6 (All done but not UI)
   static const String batchesEndpoint = '/api/batches';
   static const String trainingsEndpoint = '/api/trainings';
-  static const String deleteAbsenEndpoint = '/api/delete-absen';
+  static const String deleteAbsenEndpoint = '/api/absen';
   static const String absenTodayEndpoint = '/api/absen-today';
   static const String absenStatsEndpoint = '/api/absen-stats';
   static const String deviceTokenEndpoint = '/api/device-token';

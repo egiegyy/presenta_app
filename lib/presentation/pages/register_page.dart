@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:presenta_app/providers/auth_provider.dart';
 import 'package:presenta_app/providers/user_provider.dart';
@@ -44,15 +44,9 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() {
       _selectedBatchId = batch?.id;
       _selectedTrainingId = null;
-<<<<<<< HEAD
-      _availableTrainings = (batch?.trainings.isNotEmpty ?? false)
-          ? batch!.trainings
-          : userProvider.trainings;
-=======
       _availableTrainings = batch?.trainings.isNotEmpty == true
           ? batch!.trainings
           : context.read<UserProvider>().trainings;
->>>>>>> 77a89f6 (All done but not UI)
     });
   }
 
@@ -86,7 +80,7 @@ class _RegisterPageState extends State<RegisterPage> {
         _selectedGender!,
         _selectedBatchId,     // optional
         _selectedTrainingId,  // optional
-        null,                 // profile_photo — optional at registration
+        null,                 // profile_photo â€” optional at registration
       );
 
       if (!context.mounted) return;
@@ -172,218 +166,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
                               ],
                             ),
-<<<<<<< HEAD
-                          ),
-                          const SizedBox(height: 18),
-
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                AppStrings.gender,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF475569),
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              DropdownButtonFormField<String>(
-                                initialValue: _selectedGender,
-                                isExpanded: true,
-                                items: const [
-                                  DropdownMenuItem(
-                                    value: 'L',
-                                    child: Text('Laki-laki'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'P',
-                                    child: Text('Perempuan'),
-                                  ),
-                                ],
-                                onChanged: (value) {
-                                  setState(() => _selectedGender = value);
-                                },
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: const Color(0xFFF3F8FF),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                ),
-                                validator: (value) {
-                                  if (value == null) {
-                                    return 'Pilih jenis kelamin';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 18),
-
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                AppStrings.batch,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF475569),
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              Consumer<UserProvider>(
-                                builder: (context, userProvider, _) {
-                                  return DropdownButtonFormField<int>(
-                                    initialValue: _selectedBatchId,
-                                    isExpanded: true,
-                                    items: userProvider.batches.map((batch) {
-                                      return DropdownMenuItem(
-                                        value: batch.id,
-                                        child: Text(
-                                          batch.name.isEmpty
-                                              ? 'Batch ${batch.id}'
-                                              : batch.name,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      );
-                                    }).toList(),
-                                    onChanged: (value) {
-                                      final batch = userProvider.batches
-                                          .firstWhere(
-                                            (item) => item.id == value,
-                                            orElse: () =>
-                                                BatchModel(id: 0, name: ''),
-                                          );
-                                      _onBatchChanged(
-                                        batch.id != 0 ? batch : null,
-                                      );
-                                    },
-                                    decoration: InputDecoration(
-                                      filled: true,
-                                      fillColor: const Color(0xFFF3F8FF),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        borderSide: BorderSide.none,
-                                      ),
-                                    ),
-                                    validator: (value) {
-                                      if (value == null) return 'Pilih batch';
-                                      return null;
-                                    },
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 18),
-
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                AppStrings.training,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF475569),
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              DropdownButtonFormField<int>(
-                                initialValue: _selectedTrainingId,
-                                isExpanded: true,
-                                items: _availableTrainings.map((training) {
-                                  return DropdownMenuItem(
-                                    value: training.id,
-                                    child: Text(
-                                      training.name,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  );
-                                }).toList(),
-                                onChanged: (value) {
-                                  setState(() {
-                                    _selectedTrainingId = value;
-                                  });
-                                },
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: const Color(0xFFF3F8FF),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                ),
-                                validator: (value) {
-                                  if (value == null) return 'Pilih training';
-                                  return null;
-                                },
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 18),
-
-                          CustomTextField(
-                            label: AppStrings.password,
-                            hint: 'Min. 6 characters',
-                            controller: _passwordController,
-                            obscureText: true,
-                            prefixIcon: Icons.lock_outlined,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return AppStrings.passwordRequired;
-                              }
-                              if (value.length < 6) {
-                                return AppStrings.passwordTooShort;
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 18),
-
-                          CustomTextField(
-                            label: AppStrings.confirmPassword,
-                            hint: 'Confirm password',
-                            controller: _confirmPasswordController,
-                            obscureText: true,
-                            prefixIcon: Icons.lock_outlined,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Confirm password required';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 26),
-
-                          Consumer<AuthProvider>(
-                            builder: (context, authProvider, _) {
-                              return SizedBox(
-                                width: double.infinity,
-                                child: GradientButton(
-                                  label: AppStrings.register,
-                                  isLoading: authProvider.isLoading,
-                                  onPressed: () => _handleRegister(context),
-                                  startColor: const Color(0xFF0A6CFF),
-                                  endColor: const Color(0xFF5DA8FF),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 18),
-
-                          Center(
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-=======
                             padding: const EdgeInsets.all(24),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
->>>>>>> 77a89f6 (All done but not UI)
                               children: [
                                 const Text(
                                   'Personal Info',

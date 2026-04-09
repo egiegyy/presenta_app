@@ -1,10 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:presenta_app/config/localization_config.dart';
 import 'package:presenta_app/core/constants/app_constants.dart';
 import 'package:presenta_app/presentation/pages/checkin_form.dart';
 import 'package:presenta_app/presentation/widgets/custom_widgets.dart';
@@ -20,12 +20,9 @@ class HomeContent extends StatefulWidget {
 }
 
 class _HomeContentState extends State<HomeContent> {
-<<<<<<< HEAD
   Timer? _clockTimer;
   GoogleMapController? _mapController;
 
-=======
->>>>>>> 77a89f6 (All done but not UI)
   @override
   void initState() {
     super.initState();
@@ -72,31 +69,17 @@ class _HomeContentState extends State<HomeContent> {
 
         final now = snapshot.data!;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              DateFormat('HH:mm:ss').format(now),
-              style: const TextStyle(
-                fontSize: 38,
-                fontWeight: FontWeight.w800,
-                color: AppPalette.brandBlueDark,
-                letterSpacing: 1.2,
-              ),
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            DateFormat('HH:mm').format(now),
+            style: const TextStyle(
+              fontSize: 38,
+              fontWeight: FontWeight.w800,
+              color: AppPalette.brandBlueDark,
+              letterSpacing: 1.2,
             ),
-            const SizedBox(height: 6),
-            Text(
-              DateFormat(
-                'EEEE, dd MMMM yyyy',
-                LocalizationConfig.dateLocale,
-              ).format(now),
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                color: AppPalette.textSecondary,
-              ),
-            ),
-          ],
+          ),
         );
       },
     );
@@ -118,6 +101,15 @@ class _HomeContentState extends State<HomeContent> {
               builder:
                   (context, authProvider, userProvider, attendanceProvider, _) {
                     final user = userProvider.user ?? authProvider.currentUser;
+                    final localImagePath = userProvider.localImagePath;
+                    ImageProvider? profileImage;
+                    if (user?.photo != null && user!.photo!.isNotEmpty) {
+                      profileImage = NetworkImage(user.photo!);
+                    } else if (localImagePath != null &&
+                        localImagePath.isNotEmpty &&
+                        File(localImagePath).existsSync()) {
+                      profileImage = FileImage(File(localImagePath));
+                    }
 
                     return GlassmorphicCard(
                       child: Row(
@@ -189,10 +181,8 @@ class _HomeContentState extends State<HomeContent> {
                             child: CircleAvatar(
                               radius: 34,
                               backgroundColor: Colors.white,
-                              backgroundImage: user?.photo != null
-                                  ? NetworkImage(user!.photo!)
-                                  : null,
-                              child: user?.photo == null
+                              backgroundImage: profileImage,
+                              child: profileImage == null
                                   ? const Icon(
                                       Icons.person_rounded,
                                       size: 34,
@@ -206,59 +196,14 @@ class _HomeContentState extends State<HomeContent> {
                     );
                   },
             ),
-<<<<<<< HEAD
-            const SizedBox(height: 24),
-            Consumer<AttendanceProvider>(
-              builder: (context, attendanceProvider, _) {
-                final location = attendanceProvider.currentLocation;
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: SizedBox(
-                    height: 250,
-                    child: location == null
-                        ? const Center(child: CircularProgressIndicator())
-                        : GoogleMap(
-                            onMapCreated: _onMapCreated,
-                            initialCameraPosition: CameraPosition(
-                              target: LatLng(
-                                location.latitude,
-                                location.longitude,
-                              ),
-                              zoom: AppConstants.defaultMapZoom,
-                            ),
-                            myLocationEnabled: true,
-                            myLocationButtonEnabled: true,
-                            markers: {
-                              Marker(
-                                markerId: const MarkerId('current'),
-                                position: LatLng(
-                                  location.latitude,
-                                  location.longitude,
-                                ),
-                                infoWindow: const InfoWindow(
-                                  title: 'Lokasi Anda',
-                                ),
-                              ),
-                            },
-                          ),
-=======
             const SizedBox(height: 18),
-            GlassmorphicCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Waktu Sekarang',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppPalette.textSecondary,
-                    ),
->>>>>>> 77a89f6 (All done but not UI)
-                  ),
-                  const SizedBox(height: 10),
-                  _realTimeClock(),
-                ],
+            SizedBox(
+              width: double.infinity,
+              child: GlassmorphicCard(
+                child: SizedBox(
+                  width: double.infinity,
+                  child: _realTimeClock(),
+                ),
               ),
             ),
             const SizedBox(height: 18),
@@ -373,6 +318,7 @@ class _HomeContentState extends State<HomeContent> {
                                   ),
                                 )
                               : GoogleMap(
+                                  onMapCreated: _onMapCreated,
                                   initialCameraPosition: CameraPosition(
                                     target: LatLng(
                                       location.latitude,
@@ -487,10 +433,6 @@ class _HomeContentState extends State<HomeContent> {
     final noteController = TextEditingController();
     showDialog(
       context: context,
-<<<<<<< HEAD
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Check Out'),
-=======
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
@@ -502,7 +444,6 @@ class _HomeContentState extends State<HomeContent> {
             color: AppPalette.brandBlueDark,
           ),
         ),
->>>>>>> 77a89f6 (All done but not UI)
         content: TextFormField(
           controller: noteController,
           decoration: InputDecoration(
@@ -518,20 +459,15 @@ class _HomeContentState extends State<HomeContent> {
         ),
         actions: [
           TextButton(
-<<<<<<< HEAD
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Batal'),
-=======
             onPressed: () => Navigator.pop(ctx),
             child: const Text(
               'Batal',
               style: TextStyle(color: AppPalette.textSecondary),
             ),
->>>>>>> 77a89f6 (All done but not UI)
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(dialogContext); // close dialog first
+              Navigator.pop(ctx); // close dialog first
               final attendanceProvider = context.read<AttendanceProvider>();
               final success = await attendanceProvider.checkOut(
                 noteController.text.trim(),
@@ -570,9 +506,6 @@ class StatusPill extends StatelessWidget {
   final Color backgroundColor;
   final Color borderColor;
 
-<<<<<<< HEAD
-  const StatusPill({super.key, required this.label, required this.color});
-=======
   const StatusPill({
     Key? key,
     required this.label,
@@ -580,7 +513,6 @@ class StatusPill extends StatelessWidget {
     required this.backgroundColor,
     required this.borderColor,
   }) : super(key: key);
->>>>>>> 77a89f6 (All done but not UI)
 
   @override
   Widget build(BuildContext context) {
@@ -598,3 +530,4 @@ class StatusPill extends StatelessWidget {
     );
   }
 }
+

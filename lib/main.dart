@@ -1,13 +1,10 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-<<<<<<< HEAD
-import 'package:presenta_app/core/services/api_service.dart';
-=======
 import 'package:presenta_app/config/localization_config.dart';
->>>>>>> 77a89f6 (All done but not UI)
+import 'package:presenta_app/core/services/api_service.dart';
 import 'package:presenta_app/core/services/local_storage_service.dart';
 import 'package:presenta_app/core/services/location_service.dart';
 import 'package:presenta_app/providers/auth_provider.dart';
@@ -125,7 +122,7 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, _) {
-        // 🔥 LOADING STATE (FIX BUG)
+        // ðŸ”¥ LOADING STATE (FIX BUG)
         if (!_isInitialized) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),

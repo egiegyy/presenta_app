@@ -1,4 +1,4 @@
-class UserModel {
+﻿class UserModel {
   final int id;
   final String name;
   final String email;
@@ -33,17 +33,6 @@ class UserModel {
       id: _parseInt(json['id']),
       name: json['name'] ?? '',
       email: json['email'] ?? '',
-<<<<<<< HEAD
-      phone: json['phone']?.toString(),
-      photo: json['profile_photo']?.toString() ?? json['photo']?.toString(),
-      gender: json['jenis_kelamin']?.toString() ?? json['gender']?.toString(),
-      batch: json['batch']?.toString() ?? json['batch_name']?.toString(),
-      training:
-          json['training']?.toString() ??
-          json['training_name']?.toString() ??
-          json['title']?.toString(),
-      createdAt: json['created_at']?.toString() ?? '',
-=======
       phone: _parseNullableString(json['phone']),
       photo: _parseNullableString(json['profile_photo'] ?? json['photo']),
       gender: _parseNullableString(json['jenis_kelamin'] ?? json['gender']),
@@ -60,7 +49,6 @@ class UserModel {
             : trainingData,
       ),
       createdAt: json['created_at'] ?? '',
->>>>>>> 77a89f6 (All done but not UI)
     );
   }
 

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 class AttendanceModel {
   final int id;
@@ -34,49 +34,6 @@ class AttendanceModel {
   });
 
   factory AttendanceModel.fromJson(Map<String, dynamic> json) {
-<<<<<<< HEAD
-    String? status = json['status']?.toString();
-    // Normalize status from API
-    if (status == null || status.isEmpty) {
-      status = (json['check_in_time'] ?? json['jam_masuk']) != null
-          ? 'Hadir'
-          : 'Tanpa Keterangan';
-    } else if (status.toLowerCase().contains('masuk') ||
-        status.toLowerCase().contains('hadir')) {
-      status = 'Hadir';
-    } else if (status.toLowerCase().contains('sakit') ||
-        status.toLowerCase().contains('izin sakit')) {
-      status = 'Izin Sakit';
-    } else if (status.toLowerCase().contains('izin')) {
-      status = 'Izin';
-    } else if (status.toLowerCase().contains('tanpa') ||
-        status.toLowerCase().contains('keterangan')) {
-      status = 'Tanpa Keterangan';
-    }
-
-    return AttendanceModel(
-      id: json['id'] ?? 0,
-      date:
-          json['attendance_date']?.toString() ??
-          json['date']?.toString() ??
-          json['created_at']?.toString() ??
-          '',
-      checkInTime: json['check_in_time'] ?? json['jam_masuk'],
-      checkOutTime: json['check_out_time'] ?? json['jam_keluar'],
-      checkInLocation:
-          json['check_in_address']?.toString() ??
-          json['check_in_location']?.toString() ??
-          json['check_out_address']?.toString() ??
-          json['check_out_location']?.toString(),
-      checkOutLocation:
-          json['check_out_address']?.toString() ??
-          json['check_out_location']?.toString(),
-      status: status,
-      note:
-          json['alasan_izin']?.toString() ??
-          json['note']?.toString() ??
-          json['reason']?.toString(),
-=======
     final normalizedStatus = _normalizeStatus(
       json['status']?.toString(),
       json['alasan_izin']?.toString(),
@@ -101,7 +58,6 @@ class AttendanceModel {
       checkOutLocation: _parseNullableString(json['check_out_location']),
       status: normalizedStatus,
       note: _parseNullableString(json['alasan_izin'] ?? json['note']),
->>>>>>> 77a89f6 (All done but not UI)
     );
   }
 

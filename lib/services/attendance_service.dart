@@ -73,9 +73,8 @@ class AttendanceService {
 
   Future<void> deleteAttendance(int id) async {
     await _apiService.delete(
-      AppConstants.deleteAbsenEndpoint,
+      '${AppConstants.deleteAbsenEndpoint}/$id',
       requireAuth: true,
-      queryParameters: {'id': id.toString()}, // must be String for HTTP
     );
   }
 
