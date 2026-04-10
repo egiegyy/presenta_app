@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:presenta_app/core/constants/app_constants.dart';
 import 'package:presenta_app/presentation/widgets/custom_widgets.dart';
 import 'package:presenta_app/providers/attendance_provider.dart';
+import 'package:presenta_app/services/attendance_service.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -50,7 +52,7 @@ class _HistoryPageState extends State<HistoryPage> {
           child: attendanceProvider.attendanceHistory.isEmpty
               ? ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
+                  padding: const EdgeInsets.all(20),
                   children: [
                     Row(
                       children: [
@@ -108,9 +110,9 @@ class _HistoryPageState extends State<HistoryPage> {
                               ),
                             ),
                             const SizedBox(height: 18),
-                            const Text(
+                            Text(
                               AppStrings.noData,
-                              style: TextStyle(
+                              style: GoogleFonts.poppins(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
                                 color: AppPalette.textPrimary,
@@ -118,9 +120,9 @@ class _HistoryPageState extends State<HistoryPage> {
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 8),
-                            const Text(
+                            Text(
                               'Riwayat absensi Anda akan tampil di sini setelah data tersedia.',
-                              style: TextStyle(
+                              style: GoogleFonts.inter(
                                 fontSize: 14,
                                 height: 1.5,
                                 color: AppPalette.textSecondary,
@@ -135,7 +137,7 @@ class _HistoryPageState extends State<HistoryPage> {
                 )
               : ListView.builder(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
+                  padding: const EdgeInsets.all(20),
                   itemCount: attendanceProvider.attendanceHistory.length + 1,
                   itemBuilder: (context, index) {
                     if (index == 0) {
@@ -197,9 +199,9 @@ class _HistoryPageState extends State<HistoryPage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      const Text(
+                                      Text(
                                         AppStrings.date,
-                                        style: TextStyle(
+                                        style: GoogleFonts.inter(
                                           fontSize: 12,
                                           color: AppPalette.textSecondary,
                                           fontWeight: FontWeight.w600,
@@ -208,7 +210,7 @@ class _HistoryPageState extends State<HistoryPage> {
                                       const SizedBox(height: 6),
                                       Text(
                                         attendance.date,
-                                        style: const TextStyle(
+                                        style: GoogleFonts.poppins(
                                           fontSize: 17,
                                           fontWeight: FontWeight.w800,
                                           color: AppPalette.brandBlueDark,
@@ -232,11 +234,24 @@ class _HistoryPageState extends State<HistoryPage> {
                                   ),
                                   child: Text(
                                     attendance.getAttendanceStatus(),
-                                    style: TextStyle(
+                                    style: GoogleFonts.inter(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700,
                                       color: attendance.getStatusColor(),
                                     ),
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: attendanceProvider.isLoading
+                                      ? null
+                                      : () => _confirmDelete(
+                                          context,
+                                          attendance.id,
+                                        ),
+                                  tooltip: 'Hapus absensi',
+                                  icon: const Icon(
+                                    Icons.delete_outline_rounded,
+                                    color: AppPalette.pastelRedText,
                                   ),
                                 ),
                               ],
@@ -293,6 +308,67 @@ class _HistoryPageState extends State<HistoryPage> {
         )
         .length;
   }
+
+  Future<void> _confirmDelete(BuildContext context, int id) async {
+    final isDark = AppPalette.isDark(context);
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppPalette.surfaceFor(context),
+        surfaceTintColor: AppPalette.surfaceFor(context),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          'Hapus Absensi',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w700,
+            color: AppPalette.textPrimaryFor(context),
+          ),
+        ),
+        content: Text(
+          'Data absensi ini akan dihapus permanen. Lanjutkan?',
+          style: GoogleFonts.inter(
+            color: AppPalette.textSecondaryFor(context),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              'Batal',
+              style: TextStyle(color: AppPalette.textSecondaryFor(context)),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              final result = await context.read<AttendanceProvider>()
+                  .deleteAttendance(id);
+              if (!context.mounted) return;
+
+              switch (result.type) {
+                case AttendanceActionType.success:
+                  SuccessSnackbar.show(context, result.message);
+                  break;
+                case AttendanceActionType.info:
+                  AppSnackbar.show(context, result.message);
+                  break;
+                case AttendanceActionType.error:
+                  ErrorSnackbar.show(context, result.message);
+                  break;
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isDark
+                  ? const Color(0xFFEF4444)
+                  : AppPalette.pastelRedText,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _HistoryDetailTile extends StatelessWidget {
@@ -310,12 +386,13 @@ class _HistoryDetailTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppPalette.isDark(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       margin: const EdgeInsets.only(bottom: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FBFF),
+        color: isDark ? const Color(0xFF111827) : const Color(0xFFF8FBFF),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -329,19 +406,19 @@ class _HistoryDetailTile extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
+                  style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppPalette.textSecondary,
+                    color: AppPalette.textSecondaryFor(context),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: AppPalette.textPrimary,
+                    color: AppPalette.textPrimaryFor(context),
                   ),
                 ),
               ],

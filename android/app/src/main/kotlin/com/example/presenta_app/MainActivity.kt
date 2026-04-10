@@ -1,4 +1,4 @@
-package com.example.presenta_app
+package com.presenta
 
 import io.flutter.embedding.android.FlutterActivity
 

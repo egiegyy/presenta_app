@@ -1,7 +1,7 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -11,6 +11,7 @@ import 'package:presenta_app/presentation/widgets/custom_widgets.dart';
 import 'package:presenta_app/providers/attendance_provider.dart';
 import 'package:presenta_app/providers/auth_provider.dart';
 import 'package:presenta_app/providers/user_provider.dart';
+import 'package:presenta_app/services/attendance_service.dart';
 
 class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
@@ -20,7 +21,6 @@ class HomeContent extends StatefulWidget {
 }
 
 class _HomeContentState extends State<HomeContent> {
-  Timer? _clockTimer;
   GoogleMapController? _mapController;
 
   @override
@@ -39,7 +39,6 @@ class _HomeContentState extends State<HomeContent> {
 
   @override
   void dispose() {
-    _clockTimer?.cancel();
     _mapController?.dispose();
     super.dispose();
   }
@@ -64,22 +63,39 @@ class _HomeContentState extends State<HomeContent> {
       ),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Text('--:--:--');
+          return Text(
+            '--:--',
+            style: GoogleFonts.poppins(
+              fontSize: 38,
+              fontWeight: FontWeight.w700,
+              color: AppPalette.brandBlueDark,
+            ),
+          );
         }
 
         final now = snapshot.data!;
-
-        return Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            DateFormat('HH:mm').format(now),
-            style: const TextStyle(
-              fontSize: 38,
-              fontWeight: FontWeight.w800,
-              color: AppPalette.brandBlueDark,
-              letterSpacing: 1.2,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              DateFormat('HH:mm').format(now),
+              style: GoogleFonts.poppins(
+                fontSize: 38,
+                fontWeight: FontWeight.w700,
+                color: AppPalette.brandBlueDark,
+                letterSpacing: 1.2,
+              ),
             ),
-          ),
+            const SizedBox(height: 6),
+            Text(
+              DateFormat('EEEE, dd MMMM yyyy', 'id').format(now),
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppPalette.textSecondary,
+              ),
+            ),
+          ],
         );
       },
     );
@@ -93,7 +109,7 @@ class _HomeContentState extends State<HomeContent> {
       },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
+        padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -113,54 +129,8 @@ class _HomeContentState extends State<HomeContent> {
 
                     return GlassmorphicCard(
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _getGreeting(),
-                                  style: const TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppPalette.brandBlueDark,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  user?.name ?? '-',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppPalette.textSecondary,
-                                  ),
-                                ),
-                                if (user?.batch != null ||
-                                    user?.training != null) ...[
-                                  const SizedBox(height: 12),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppPalette.backgroundTint,
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    child: Text(
-                                      '${user?.batch ?? '-'} | ${user?.training ?? '-'}',
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppPalette.brandBlueDark,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 16),
                           Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
@@ -189,6 +159,40 @@ class _HomeContentState extends State<HomeContent> {
                                       color: AppPalette.brandBlueDark,
                                     )
                                   : null,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${_getGreeting()}, ${user?.name ?? '-'}',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppPalette.brandBlueDark,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  'Batch: ${user?.batch ?? '-'}',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppPalette.textSecondary,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Training: ${user?.training ?? '-'}',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppPalette.textSecondary,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -223,11 +227,11 @@ class _HomeContentState extends State<HomeContent> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Status Kehadiran',
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         fontSize: 16,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                         color: Colors.white,
                       ),
                     ),
@@ -283,18 +287,18 @@ class _HomeContentState extends State<HomeContent> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Presensi Hari Ini',
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           fontSize: 18,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w700,
                           color: AppPalette.brandBlueDark,
                         ),
                       ),
                       const SizedBox(height: 6),
-                      const Text(
+                      Text(
                         'Lihat posisi Anda dan lakukan check in atau check out dari section yang sama.',
-                        style: TextStyle(
+                        style: GoogleFonts.inter(
                           fontSize: 13,
                           height: 1.5,
                           color: AppPalette.textSecondary,
@@ -348,9 +352,7 @@ class _HomeContentState extends State<HomeContent> {
                         children: [
                           Expanded(
                             child: GradientButton(
-                              label: hasCheckedIn
-                                  ? 'Sudah Check In'
-                                  : 'Check In',
+                              label: hasCheckedIn ? 'Sudah Check In' : 'Check In',
                               isLoading: attendanceProvider.isLoading,
                               enabled: !hasCheckedIn,
                               onPressed: () => _handleCheckIn(context),
@@ -431,70 +433,100 @@ class _HomeContentState extends State<HomeContent> {
 
   void _handleCheckOut(BuildContext context) async {
     final noteController = TextEditingController();
+    final isDark = AppPalette.isDark(context);
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Text(
-          'Check Out',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            color: AppPalette.brandBlueDark,
-          ),
-        ),
-        content: TextFormField(
-          controller: noteController,
-          decoration: InputDecoration(
-            hintText: 'Catatan (opsional)',
-            filled: true,
-            fillColor: AppPalette.backgroundTint,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide.none,
-            ),
-          ),
-          maxLines: 3,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              'Batal',
-              style: TextStyle(color: AppPalette.textSecondary),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(ctx); // close dialog first
-              final attendanceProvider = context.read<AttendanceProvider>();
-              final success = await attendanceProvider.checkOut(
-                noteController.text.trim(),
-              );
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      success
-                          ? AppStrings.checkOutSuccess
-                          : (attendanceProvider.error ?? 'Gagal check out'),
-                    ),
-                    backgroundColor: success ? Colors.green : Colors.red,
-                  ),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppPalette.brandBlueDark,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+        child: GlassmorphicCard(
+          borderRadius: 24,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Check Out',
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: AppPalette.textPrimaryFor(context),
+                ),
               ),
-            ),
-            child: const Text('Check Out'),
+              const SizedBox(height: 8),
+              Text(
+                'Tambahkan catatan bila perlu sebelum menyelesaikan presensi pulang.',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  height: 1.5,
+                  color: AppPalette.textSecondaryFor(context),
+                ),
+              ),
+              const SizedBox(height: 18),
+              TextFormField(
+                controller: noteController,
+                decoration: InputDecoration(
+                  hintText: 'Catatan (opsional)',
+                  filled: true,
+                  fillColor: isDark
+                      ? const Color(0xFF111827)
+                      : AppPalette.backgroundTint,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 18),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: Text(
+                      'Batal',
+                      style: TextStyle(
+                        color: AppPalette.textSecondaryFor(context),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () async {
+                      Navigator.pop(ctx);
+                      final attendanceProvider = context.read<AttendanceProvider>();
+                      final result = await attendanceProvider.checkOut(
+                        noteController.text.trim(),
+                      );
+                      if (context.mounted) {
+                        switch (result.type) {
+                          case AttendanceActionType.success:
+                            SuccessSnackbar.show(context, result.message);
+                            break;
+                          case AttendanceActionType.error:
+                            ErrorSnackbar.show(context, result.message);
+                            break;
+                          case AttendanceActionType.info:
+                            AppSnackbar.show(context, result.message);
+                            break;
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppPalette.brandBlueDark,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: const Text('Check Out'),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -507,12 +539,12 @@ class StatusPill extends StatelessWidget {
   final Color borderColor;
 
   const StatusPill({
-    Key? key,
+    super.key,
     required this.label,
     required this.color,
     required this.backgroundColor,
     required this.borderColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -530,4 +562,3 @@ class StatusPill extends StatelessWidget {
     );
   }
 }
-

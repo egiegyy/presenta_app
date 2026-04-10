@@ -2,10 +2,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:presenta_app/core/constants/app_constants.dart';
 import 'package:presenta_app/presentation/widgets/custom_widgets.dart';
+import 'package:presenta_app/providers/theme_provider.dart';
 import 'package:presenta_app/providers/user_provider.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -52,15 +54,14 @@ class _ProfilePageState extends State<ProfilePage> {
         _selectedImage = File(pickedFile.path);
         _isEditing = true;
       });
-
-      await context.read<UserProvider>().saveLocalImagePath(pickedFile.path);
     }
   }
 
   void _showImagePicker() {
+    final isDark = AppPalette.isDark(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppPalette.surfaceFor(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -83,12 +84,17 @@ class _ProfilePageState extends State<ProfilePage> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(18),
                 ),
-                tileColor: AppPalette.backgroundTint,
+                tileColor: isDark
+                    ? const Color(0xFF111827)
+                    : AppPalette.backgroundTint,
                 leading: const Icon(
                   Icons.camera_alt_rounded,
                   color: AppPalette.brandBlueDark,
                 ),
-                title: const Text('Camera'),
+                title: Text(
+                  'Camera',
+                  style: TextStyle(color: AppPalette.textPrimaryFor(context)),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.camera);
@@ -99,12 +105,17 @@ class _ProfilePageState extends State<ProfilePage> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(18),
                 ),
-                tileColor: AppPalette.backgroundTint,
+                tileColor: isDark
+                    ? const Color(0xFF111827)
+                    : AppPalette.backgroundTint,
                 leading: const Icon(
                   Icons.photo_library_rounded,
                   color: AppPalette.brandBlueDark,
                 ),
-                title: const Text('Gallery'),
+                title: Text(
+                  'Gallery',
+                  style: TextStyle(color: AppPalette.textPrimaryFor(context)),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.gallery);
@@ -138,9 +149,14 @@ class _ProfilePageState extends State<ProfilePage> {
       email: _emailController.text.trim(),
       base64Photo: base64Photo,
     );
+    if (!mounted) return;
+
     if (success) {
       SuccessSnackbar.show(context, 'Profil berhasil diupdate');
-      setState(() => _isEditing = false);
+      setState(() {
+        _isEditing = false;
+        _selectedImage = null;
+      });
     } else {
       ErrorSnackbar.show(context, userProvider.error ?? 'Gagal update profil');
     }
@@ -148,8 +164,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<UserProvider>(
-      builder: (context, userProvider, _) {
+    return Consumer2<UserProvider, ThemeProvider>(
+      builder: (context, userProvider, themeProvider, _) {
         if (userProvider.isLoading && userProvider.user == null) {
           return const Center(
             child: CircularProgressIndicator(
@@ -165,7 +181,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
         return SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -175,13 +191,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   children: [
                     Row(
                       children: [
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 AppStrings.profile,
-                                style: TextStyle(
+                                style: GoogleFonts.poppins(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w800,
                                   color: AppPalette.brandBlueDark,
@@ -190,7 +206,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               SizedBox(height: 6),
                               Text(
                                 'Kelola informasi akun Anda dengan tampilan yang lebih rapi dan fokus.',
-                                style: TextStyle(
+                                style: GoogleFonts.inter(
                                   fontSize: 13,
                                   height: 1.5,
                                   color: AppPalette.textSecondary,
@@ -213,6 +229,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                       _selectedImage = null;
                                     }
                                   });
+                                  if (!_isEditing) {
+                                    context.read<UserProvider>().clearLocalImagePreview();
+                                  }
                                 },
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: AppPalette.brandBlueDark,
@@ -233,7 +252,12 @@ class _ProfilePageState extends State<ProfilePage> {
                                       : Icons.edit_rounded,
                                   size: 18,
                                 ),
-                                label: Text(_isEditing ? 'Batal' : 'Edit'),
+                                label: Text(
+                                  _isEditing ? 'Batal' : 'Edit',
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -325,7 +349,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         children: [
                           Text(
                             user.name,
-                            style: const TextStyle(
+                            style: GoogleFonts.poppins(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
                               color: AppPalette.textPrimary,
@@ -334,7 +358,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           const SizedBox(height: 4),
                           Text(
                             user.email,
-                            style: const TextStyle(
+                            style: GoogleFonts.inter(
                               fontSize: 14,
                               color: AppPalette.textSecondary,
                             ),
@@ -343,6 +367,59 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                     const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).inputDecorationTheme.fillColor,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: Theme.of(context).dividerColor.withValues(
+                            alpha: 0.2,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.dark_mode_rounded,
+                            color: AppPalette.brandBlueDark,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Dark Mode',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                ),
+                                Text(
+                                  'Terapkan tema gelap ke seluruh halaman aplikasi.',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    color: Theme.of(context).hintColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: themeProvider.isDarkMode,
+                            onChanged: (value) {
+                              context.read<ThemeProvider>().setDarkMode(value);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
                     _infoField(
                       AppStrings.name,
                       user.name,
@@ -393,9 +470,9 @@ class _ProfilePageState extends State<ProfilePage> {
                               borderRadius: BorderRadius.circular(18),
                             ),
                           ),
-                          child: const Text(
+                          child: Text(
                             AppStrings.save,
-                            style: TextStyle(
+                            style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                             ),
@@ -427,7 +504,7 @@ class _ProfilePageState extends State<ProfilePage> {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: GoogleFonts.inter(
               fontSize: 13,
               fontWeight: FontWeight.w700,
               color: AppPalette.textSecondary,
@@ -472,7 +549,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   child: Text(
                     value,
-                    style: const TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: AppPalette.textPrimary,

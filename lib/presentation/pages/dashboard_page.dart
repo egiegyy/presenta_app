@@ -28,8 +28,8 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: false,
+      backgroundColor: AppPalette.backgroundTintFor(context),
       appBar: AppBar(
         title: Text(
           _titles[_currentIndex],
@@ -38,10 +38,10 @@ class _DashboardPageState extends State<DashboardPage> {
             color: Colors.white,
           ),
         ),
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppPalette.brandBlueDark,
         foregroundColor: Colors.white,
         elevation: 0,
-        surfaceTintColor: Colors.transparent,
+        surfaceTintColor: AppPalette.brandBlueDark,
         centerTitle: true,
         actions: [
           IconButton(
@@ -51,24 +51,22 @@ class _DashboardPageState extends State<DashboardPage> {
         ],
       ),
       body: AppBackground(
-        child: SafeArea(
-          child: Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0, 64, 0, 112),
-                child: IndexedStack(index: _currentIndex, children: _pages),
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 104),
+              child: IndexedStack(index: _currentIndex, children: _pages),
+            ),
+            Positioned(
+              left: 20,
+              right: 20,
+              bottom: 20,
+              child: _FloatingNavigationBar(
+                currentIndex: _currentIndex,
+                onTap: (index) => setState(() => _currentIndex = index),
               ),
-              Positioned(
-                left: 20,
-                right: 20,
-                bottom: 20,
-                child: _FloatingNavigationBar(
-                  currentIndex: _currentIndex,
-                  onTap: (index) => setState(() => _currentIndex = index),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -78,26 +76,26 @@ class _DashboardPageState extends State<DashboardPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: AppPalette.surfaceFor(context),
+        surfaceTintColor: AppPalette.surfaceFor(context),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Text(
+        title: Text(
           'Logout',
           style: TextStyle(
             fontWeight: FontWeight.w700,
-            color: AppPalette.brandBlueDark,
+            color: AppPalette.textPrimaryFor(context),
           ),
         ),
-        content: const Text(
+        content: Text(
           'Apakah Anda yakin ingin logout?',
-          style: TextStyle(color: AppPalette.textSecondary),
+          style: TextStyle(color: AppPalette.textSecondaryFor(context)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
+            child: Text(
               'Batal',
-              style: TextStyle(color: AppPalette.textSecondary),
+              style: TextStyle(color: AppPalette.textSecondaryFor(context)),
             ),
           ),
           ElevatedButton(
@@ -138,6 +136,7 @@ class _FloatingNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppPalette.isDark(context);
     final items = const [
       (icon: Icons.home_rounded, label: 'Home'),
       (icon: Icons.history_rounded, label: 'Riwayat'),
@@ -147,12 +146,14 @@ class _FloatingNavigationBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.98),
+        color: (isDark ? const Color(0xFF162033) : Colors.white).withValues(
+          alpha: 0.98,
+        ),
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: const Color(0xFFDCE7FF)),
+        border: Border.all(color: AppPalette.borderFor(context)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.14),
+            color: Colors.black.withValues(alpha: isDark ? 0.28 : 0.14),
             blurRadius: 30,
             offset: const Offset(0, 18),
           ),
@@ -183,7 +184,7 @@ class _FloatingNavigationBar extends StatelessWidget {
                       item.icon,
                       color: isSelected
                           ? Colors.white
-                          : AppPalette.textSecondary,
+                          : AppPalette.textSecondaryFor(context),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -193,7 +194,7 @@ class _FloatingNavigationBar extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                         color: isSelected
                             ? Colors.white
-                            : AppPalette.textSecondary,
+                            : AppPalette.textSecondaryFor(context),
                       ),
                     ),
                   ],

@@ -49,6 +49,12 @@ class LocalStorageService {
     await _preferences.clear();
   }
 
+  Future<void> clearAuthSession() async {
+    await _preferences.remove(AppConstants.tokenKey);
+    await _preferences.remove(AppConstants.userIdKey);
+    await _preferences.setBool(AppConstants.loginStatusKey, false);
+  }
+
   Future<void> saveProfileImagePath(String path) async {
     await _preferences.setString(AppConstants.profileImagePathKey, path);
   }
@@ -59,5 +65,36 @@ class LocalStorageService {
 
   Future<void> clearProfileImagePath() async {
     await _preferences.remove(AppConstants.profileImagePathKey);
+  }
+
+  Future<void> saveProfileIdentity({
+    required String name,
+    required String email,
+    String? batch,
+    String? training,
+  }) async {
+    await _preferences.setString(AppConstants.profileNameKey, name);
+    await _preferences.setString(AppConstants.profileEmailKey, email);
+
+    if (batch == null || batch.trim().isEmpty) {
+      await _preferences.remove(AppConstants.profileBatchKey);
+    } else {
+      await _preferences.setString(AppConstants.profileBatchKey, batch);
+    }
+
+    if (training == null || training.trim().isEmpty) {
+      await _preferences.remove(AppConstants.profileTrainingKey);
+    } else {
+      await _preferences.setString(AppConstants.profileTrainingKey, training);
+    }
+  }
+
+  Future<Map<String, String?>> getProfileIdentity() async {
+    return {
+      'name': _preferences.getString(AppConstants.profileNameKey),
+      'email': _preferences.getString(AppConstants.profileEmailKey),
+      'batch': _preferences.getString(AppConstants.profileBatchKey),
+      'training': _preferences.getString(AppConstants.profileTrainingKey),
+    };
   }
 }

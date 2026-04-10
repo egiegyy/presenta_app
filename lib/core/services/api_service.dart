@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -98,17 +99,23 @@ class ApiService {
     bool requireAuth = false,
     Map<String, dynamic>? queryParameters,
   }) async {
-    final uri = Uri.parse('${AppConstants.baseUrl}$endpoint').replace(
-      queryParameters: queryParameters?.map(
-        (key, value) => MapEntry(key, value.toString()),
-      ),
-    );
+    try {
+      final uri = Uri.parse('${AppConstants.baseUrl}$endpoint').replace(
+        queryParameters: queryParameters?.map(
+          (key, value) => MapEntry(key, value.toString()),
+        ),
+      );
 
-    final response = await _client
-        .get(uri, headers: requireAuth ? await _headersWithAuth() : _headers())
-        .timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
+      final response = await _client
+          .get(uri, headers: requireAuth ? await _headersWithAuth() : _headers())
+          .timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
 
-    return _handleResponse(response);
+      return _handleResponse(response);
+    } on TimeoutException {
+      throw NetworkException(
+        message: 'Server terlalu lama merespons. Silakan coba lagi.',
+      );
+    }
   }
 
   Future<dynamic> post(
@@ -117,15 +124,21 @@ class ApiService {
     bool requireAuth = false,
     bool allowConflict = false,
   }) async {
-    final response = await _client
-        .post(
-          Uri.parse('${AppConstants.baseUrl}$endpoint'),
-          headers: requireAuth ? await _headersWithAuth() : _headers(),
-          body: jsonEncode(body ?? <String, dynamic>{}),
-        )
-        .timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
+    try {
+      final response = await _client
+          .post(
+            Uri.parse('${AppConstants.baseUrl}$endpoint'),
+            headers: requireAuth ? await _headersWithAuth() : _headers(),
+            body: jsonEncode(body ?? <String, dynamic>{}),
+          )
+          .timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
 
-    return _handleResponse(response, allowConflict: allowConflict);
+      return _handleResponse(response, allowConflict: allowConflict);
+    } on TimeoutException {
+      throw NetworkException(
+        message: 'Server terlalu lama merespons. Silakan coba lagi.',
+      );
+    }
   }
 
   Future<dynamic> put(
@@ -133,15 +146,21 @@ class ApiService {
     required Map<String, dynamic> body,
     bool requireAuth = false,
   }) async {
-    final response = await _client
-        .put(
-          Uri.parse('${AppConstants.baseUrl}$endpoint'),
-          headers: requireAuth ? await _headersWithAuth() : _headers(),
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
+    try {
+      final response = await _client
+          .put(
+            Uri.parse('${AppConstants.baseUrl}$endpoint'),
+            headers: requireAuth ? await _headersWithAuth() : _headers(),
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
 
-    return _handleResponse(response);
+      return _handleResponse(response);
+    } on TimeoutException {
+      throw NetworkException(
+        message: 'Server terlalu lama merespons. Silakan coba lagi.',
+      );
+    }
   }
 
   Future<dynamic> delete(
@@ -149,17 +168,26 @@ class ApiService {
     bool requireAuth = false,
     Map<String, dynamic>? queryParameters,
   }) async {
-    final uri = Uri.parse('${AppConstants.baseUrl}$endpoint').replace(
-      queryParameters: queryParameters?.map(
-        (key, value) => MapEntry(key, value.toString()),
-      ),
-    );
+    try {
+      final uri = Uri.parse('${AppConstants.baseUrl}$endpoint').replace(
+        queryParameters: queryParameters?.map(
+          (key, value) => MapEntry(key, value.toString()),
+        ),
+      );
 
-    final response = await _client
-        .delete(uri, headers: requireAuth ? await _headersWithAuth() : _headers())
-        .timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
+      final response = await _client
+          .delete(
+            uri,
+            headers: requireAuth ? await _headersWithAuth() : _headers(),
+          )
+          .timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
 
-    return _handleResponse(response);
+      return _handleResponse(response);
+    } on TimeoutException {
+      throw NetworkException(
+        message: 'Server terlalu lama merespons. Silakan coba lagi.',
+      );
+    }
   }
 
   Future<AuthSessionModel> login(String email, String password) async {
@@ -333,12 +361,13 @@ class ApiService {
     }
   }
 
-  Future<void> deleteAbsen(int id) async {
+  Future<Map<String, dynamic>> deleteAbsen(int id) async {
     try {
-      await delete(
+      final data = await delete(
         '${AppConstants.deleteAbsenEndpoint}/$id',
         requireAuth: true,
       );
+      return data is Map<String, dynamic> ? data : <String, dynamic>{};
     } catch (e) {
       debugPrint('DELETE ERROR: $e');
       rethrow;
@@ -346,6 +375,6 @@ class ApiService {
   }
 
   Future<void> logout() async {
-    await _storage.clear();
+    await _storage.clearAuthSession();
   }
 }

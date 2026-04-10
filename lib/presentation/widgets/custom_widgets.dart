@@ -20,6 +20,29 @@ class AppPalette {
 
   static const Color textPrimary = Color(0xFF0F172A);
   static const Color textSecondary = Color(0xFF64748B);
+
+  static bool isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  static Color backgroundTintFor(BuildContext context) => isDark(context)
+      ? const Color(0xFF0F172A)
+      : backgroundTint;
+
+  static Color surfaceFor(BuildContext context) => isDark(context)
+      ? const Color(0xFF162033)
+      : Colors.white;
+
+  static Color borderFor(BuildContext context) => isDark(context)
+      ? const Color(0xFF263245)
+      : const Color(0xFFDCE7FF);
+
+  static Color textPrimaryFor(BuildContext context) => isDark(context)
+      ? const Color(0xFFF8FAFC)
+      : textPrimary;
+
+  static Color textSecondaryFor(BuildContext context) => isDark(context)
+      ? const Color(0xFF94A3B8)
+      : textSecondary;
 }
 
 class AppBackground extends StatelessWidget {
@@ -29,18 +52,25 @@ class AppBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppPalette.isDark(context);
     return Container(
       width: double.infinity,
       height: double.infinity,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            AppPalette.brandBlue,
-            AppPalette.brandBlueSoft,
-            AppPalette.backgroundTint,
-          ],
+          colors: isDark
+              ? const [
+                  Color(0xFF08101E),
+                  Color(0xFF10203B),
+                  Color(0xFF0F172A),
+                ]
+              : const [
+                  AppPalette.brandBlue,
+                  AppPalette.brandBlueSoft,
+                  AppPalette.backgroundTint,
+                ],
         ),
       ),
       child: child,
@@ -227,14 +257,17 @@ class GlassmorphicCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppPalette.isDark(context);
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
-        color: Colors.white.withValues(alpha: 0.95),
-        border: Border.all(color: const Color(0xFFDCE7FF), width: 1),
+        color: (isDark ? const Color(0xFF162033) : Colors.white).withValues(
+          alpha: isDark ? 0.96 : 0.95,
+        ),
+        border: Border.all(color: AppPalette.borderFor(context), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.08),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -279,31 +312,49 @@ class LoadingDialog extends StatelessWidget {
   }
 }
 
+enum AppSnackbarType { success, error, info }
+
+class AppSnackbar {
+  static void show(
+    BuildContext context,
+    String message, {
+    AppSnackbarType type = AppSnackbarType.info,
+  }) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: _backgroundColor(type),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+  }
+
+  static Color _backgroundColor(AppSnackbarType type) {
+    switch (type) {
+      case AppSnackbarType.success:
+        return const Color(0xFF169B62);
+      case AppSnackbarType.error:
+        return const Color(0xFFD94A4A);
+      case AppSnackbarType.info:
+        return AppPalette.brandBlueDark;
+    }
+  }
+}
+
 class ErrorSnackbar {
   static void show(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    AppSnackbar.show(context, message, type: AppSnackbarType.error);
   }
 }
 
 class SuccessSnackbar {
   static void show(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    AppSnackbar.show(context, message, type: AppSnackbarType.success);
   }
 }
 
@@ -327,33 +378,44 @@ class AttendanceSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppPalette.isDark(context);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(
-        color: backgroundColor,
+        color: isDark ? backgroundColor.withValues(alpha: 0.18) : backgroundColor,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: borderColor),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Icon(icon, color: textColor, size: 20),
-          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: textColor, size: 18),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: textColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
           Text(
             value,
+            textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 24,
               fontWeight: FontWeight.w800,
-              color: textColor,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
               color: textColor,
             ),
           ),

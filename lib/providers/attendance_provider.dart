@@ -23,6 +23,8 @@ class AttendanceProvider extends ChangeNotifier {
   bool _hasCheckedInToday = false;
   bool _hasCheckedOutToday = false;
   Position? _currentLocation;
+  String? _lastActionMessage;
+  AttendanceActionType? _lastActionType;
 
   List<AttendanceModel> get attendanceHistory => _attendanceHistory;
   bool get isLoading => _isLoading;
@@ -30,6 +32,8 @@ class AttendanceProvider extends ChangeNotifier {
   bool get hasCheckedInToday => _hasCheckedInToday;
   bool get hasCheckedOutToday => _hasCheckedOutToday;
   Position? get currentLocation => _currentLocation;
+  String? get lastActionMessage => _lastActionMessage;
+  AttendanceActionType? get lastActionType => _lastActionType;
 
   Future<void> getAttendanceHistory() async {
     try {
@@ -63,64 +67,109 @@ class AttendanceProvider extends ChangeNotifier {
     _hasCheckedOutToday = attendance.checkOutTime != null;
   }
 
-  Future<bool> checkIn(String status, String note) async {
+  Future<AttendanceActionResult> checkIn(String status, String note) async {
     try {
+      _setLoading(true);
       _error = null;
+      _lastActionMessage = null;
+      _lastActionType = null;
 
       final location = await _locationService.getCurrentLocation();
       _currentLocation = location;
 
-      await _attendanceService.checkIn(
+      final result = await _attendanceService.checkIn(
         latitude: location.latitude,
         longitude: location.longitude,
         status: _mapStatusForApi(status),
         note: note,
       );
 
-      await getAttendanceHistory();
-      return true;
+      _lastActionMessage = result.message;
+      _lastActionType = result.type;
+      _applyAttendanceResult(result);
+      await _refreshHistorySilently();
+      return result;
     } catch (e) {
       _error = getErrorMessage(e is Exception ? e : Exception(e.toString()));
+      _lastActionMessage = _error;
+      _lastActionType = AttendanceActionType.error;
       notifyListeners();
-      return false;
+      return AttendanceActionResult(
+        message: _error ?? 'Gagal check in',
+        type: AttendanceActionType.error,
+      );
+    } finally {
+      _setLoading(false);
     }
   }
 
-  Future<bool> checkOut(String note) async {
+  Future<AttendanceActionResult> checkOut(String note) async {
     try {
+      _setLoading(true);
       _error = null;
+      _lastActionMessage = null;
+      _lastActionType = null;
 
       final location = await _locationService.getCurrentLocation();
       _currentLocation = location;
 
-      await _attendanceService.checkOut(
+      final result = await _attendanceService.checkOut(
         latitude: location.latitude,
         longitude: location.longitude,
         note: note,
       );
 
-      await getAttendanceHistory();
-      return true;
+      _lastActionMessage = result.message;
+      _lastActionType = result.type;
+
+      _applyAttendanceResult(result);
+      await _refreshHistorySilently();
+
+      return result;
     } catch (e) {
       _error = getErrorMessage(e is Exception ? e : Exception(e.toString()));
+      _lastActionMessage = _error;
+      _lastActionType = AttendanceActionType.error;
       notifyListeners();
-      return false;
+      return AttendanceActionResult(
+        message: _error ?? 'Gagal check out',
+        type: AttendanceActionType.error,
+      );
+    } finally {
+      _setLoading(false);
     }
   }
 
-  Future<bool> deleteAttendance(int id) async {
+  Future<AttendanceActionResult> deleteAttendance(int id) async {
     try {
       _setLoading(true);
       _error = null;
+      _lastActionMessage = null;
+      _lastActionType = null;
 
-      await _attendanceService.deleteAttendance(id);
-      await getAttendanceHistory();
+      final result = await _attendanceService.deleteAttendance(id);
+      _lastActionMessage = result.message;
+      _lastActionType = result.type;
 
-      return true;
+      if (result.isSuccess) {
+        _attendanceHistory.removeWhere((item) => item.id == id);
+        _checkTodayStatus();
+      } else {
+        await _refreshHistorySilently();
+      }
+
+      notifyListeners();
+
+      return result;
     } catch (e) {
       _error = getErrorMessage(e is Exception ? e : Exception(e.toString()));
+      _lastActionMessage = _error;
+      _lastActionType = AttendanceActionType.error;
       notifyListeners();
-      return false;
+      return AttendanceActionResult(
+        message: _error ?? 'Gagal menghapus absensi',
+        type: AttendanceActionType.error,
+      );
     } finally {
       _setLoading(false);
     }
@@ -219,6 +268,40 @@ class AttendanceProvider extends ChangeNotifier {
     if (_isLoading != value) {
       _isLoading = value;
       notifyListeners();
+    }
+  }
+
+  void _applyAttendanceResult(AttendanceActionResult result) {
+    final attendance = result.attendance;
+    if (attendance == null) {
+      notifyListeners();
+      return;
+    }
+
+    final todayString = ApiPayloadBuilder.formatDate(DateTime.now());
+    final index = _attendanceHistory.indexWhere(
+      (item) => item.id == attendance.id || item.date.startsWith(todayString),
+    );
+
+    if (index >= 0) {
+      _attendanceHistory[index] = attendance;
+    } else {
+      _attendanceHistory.insert(0, attendance);
+    }
+
+    _hasCheckedInToday = attendance.checkInTime != null;
+    _hasCheckedOutToday = attendance.checkOutTime != null;
+    notifyListeners();
+  }
+
+  Future<void> _refreshHistorySilently() async {
+    try {
+      final history = await _attendanceService.getAttendanceHistory();
+      _attendanceHistory = history;
+      _checkTodayStatus();
+      notifyListeners();
+    } catch (_) {
+      // Keep the successful action result on screen even if history refresh is slow.
     }
   }
 }

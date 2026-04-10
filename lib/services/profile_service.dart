@@ -10,11 +10,7 @@ class ProfileService {
   final ApiService _apiService;
 
   Future<UserModel> getProfile() async {
-    final response = await _apiService.get(
-      AppConstants.profileEndpoint,
-      requireAuth: true,
-    );
-    final responseMap = response as Map<String, dynamic>;
+    final responseMap = await _apiService.getProfile();
     return UserModel.fromJson(
       (responseMap['data'] as Map<String, dynamic>?) ?? responseMap,
     );
@@ -24,31 +20,56 @@ class ProfileService {
     required String name,
     required String email,
   }) async {
-    final response = await _apiService.put(
-      AppConstants.editProfileEndpoint,
-      requireAuth: true,
-      body: {'name': name, 'email': email},
-    );
+    final responseMap = await _apiService.editProfile({
+      'name': name,
+      'email': email,
+    });
 
-    final responseMap = response as Map<String, dynamic>;
     return UserModel.fromJson(
       (responseMap['data'] as Map<String, dynamic>?) ?? responseMap,
     );
   }
 
   Future<String?> updateProfilePhoto(String base64Photo) async {
-    final response = await _apiService.put(
-      AppConstants.profilePhotoEndpoint,
-      requireAuth: true,
-      body: {'profile_photo': base64Photo},
-    );
-
-    final responseMap = response as Map<String, dynamic>;
+    final responseMap = await _apiService.updateProfilePhoto(base64Photo);
     final data = responseMap['data'];
-    if (data is Map<String, dynamic>) {
-      return data['profile_photo']?.toString();
+    if (data is! Map<String, dynamic>) {
+      return null;
     }
-    return null;
+
+    return _normalizePhotoUrl(data['profile_photo']?.toString());
+  }
+
+  String? _normalizePhotoUrl(String? url) {
+    if (url == null || url.trim().isEmpty) {
+      return null;
+    }
+
+    final normalizedUrl = url.trim();
+    final parsed = Uri.tryParse(normalizedUrl);
+    final baseUri = Uri.parse(AppConstants.baseUrl);
+
+    if (parsed == null) {
+      return normalizedUrl;
+    }
+
+    if (!parsed.hasScheme) {
+      final relativePath = normalizedUrl.startsWith('/')
+          ? normalizedUrl
+          : '/$normalizedUrl';
+      return '${AppConstants.baseUrl}$relativePath';
+    }
+
+    final localhostHosts = {'127.0.0.1', 'localhost'};
+    if (localhostHosts.contains(parsed.host)) {
+      return parsed.replace(
+        scheme: baseUri.scheme,
+        host: baseUri.host,
+        port: baseUri.hasPort ? baseUri.port : parsed.port,
+      ).toString();
+    }
+
+    return normalizedUrl;
   }
 
   Future<List<BatchModel>> getBatches() async {

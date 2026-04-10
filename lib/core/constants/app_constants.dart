@@ -6,6 +6,10 @@
   static const String loginStatusKey = 'is_logged_in';
   static const String darkModeKey = 'dark_mode';
   static const String profileImagePathKey = 'profile_image_path';
+  static const String profileNameKey = 'profile_name';
+  static const String profileEmailKey = 'profile_email';
+  static const String profileBatchKey = 'profile_batch';
+  static const String profileTrainingKey = 'profile_training';
 
   // API Endpoints
   static const String loginEndpoint = '/api/login';

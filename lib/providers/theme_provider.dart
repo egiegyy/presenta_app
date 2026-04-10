@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:presenta_app/core/services/local_storage_service.dart';
 
 class ThemeProvider extends ChangeNotifier {
@@ -67,6 +68,20 @@ class ThemeProvider extends ChangeNotifier {
         elevation: 0,
         iconTheme: IconThemeData(color: Colors.white),
       ),
+      textTheme: GoogleFonts.interTextTheme().copyWith(
+        displayLarge: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+        displayMedium: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+        displaySmall: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+        headlineLarge: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+        headlineMedium: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+        headlineSmall: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+        titleLarge: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+        titleMedium: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+        bodyLarge: GoogleFonts.inter(),
+        bodyMedium: GoogleFonts.inter(),
+        bodySmall: GoogleFonts.inter(),
+        labelLarge: GoogleFonts.inter(fontWeight: FontWeight.w600),
+      ),
       cardTheme: CardThemeData(
         color: Colors.white,
         elevation: 6,
@@ -112,6 +127,20 @@ class ThemeProvider extends ChangeNotifier {
         backgroundColor: Color(0xFF1E293B),
         foregroundColor: Colors.white,
         elevation: 0,
+      ),
+      textTheme: GoogleFonts.interTextTheme().copyWith(
+        displayLarge: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+        displayMedium: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+        displaySmall: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+        headlineLarge: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+        headlineMedium: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+        headlineSmall: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+        titleLarge: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+        titleMedium: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+        bodyLarge: GoogleFonts.inter(),
+        bodyMedium: GoogleFonts.inter(),
+        bodySmall: GoogleFonts.inter(),
+        labelLarge: GoogleFonts.inter(fontWeight: FontWeight.w600),
       ),
       cardTheme: CardThemeData(
         color: const Color(0xFF1E293B),

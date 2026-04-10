@@ -10,7 +10,9 @@ class UserProvider extends ChangeNotifier {
     ProfileService? profileService,
     LocalStorageService? localStorageService,
   }) : _profileService = profileService ?? ProfileService(),
-       _storage = localStorageService ?? LocalStorageService();
+       _storage = localStorageService ?? LocalStorageService() {
+    _loadPersistedProfile();
+  }
 
   final ProfileService _profileService;
   final LocalStorageService _storage;
@@ -29,12 +31,38 @@ class UserProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  Future<void> _loadPersistedProfile() async {
+    final identity = await _storage.getProfileIdentity();
+    final name = identity['name']?.trim();
+    final email = identity['email']?.trim();
+    final localImagePath = await _storage.getProfileImagePath();
+
+    if (name != null && name.isNotEmpty && email != null && email.isNotEmpty) {
+      _user = UserModel(
+        id: 0,
+        name: name,
+        email: email,
+        batch: identity['batch'],
+        training: identity['training'],
+        createdAt: '',
+      );
+      _localImagePath = localImagePath;
+      notifyListeners();
+    }
+  }
+
   Future<void> getProfile() async {
     try {
       _setLoading(true);
       _error = null;
 
       _user = await _profileService.getProfile();
+      await _storage.saveProfileIdentity(
+        name: _user?.name ?? '',
+        email: _user?.email ?? '',
+        batch: _user?.batch,
+        training: _user?.training,
+      );
 
       if (_user?.photo == null) {
         _localImagePath = await _storage.getProfileImagePath();
@@ -58,7 +86,23 @@ class UserProvider extends ChangeNotifier {
       _setLoading(true);
       _error = null;
 
-      _user = await _profileService.updateProfile(name: name, email: email);
+      final previousUser = _user;
+      final updated = await _profileService.updateProfile(name: name, email: email);
+      _user = UserModel(
+        id: updated.id,
+        name: updated.name,
+        email: updated.email,
+        phone: updated.phone ?? previousUser?.phone,
+        photo: updated.photo ?? previousUser?.photo,
+        gender: updated.gender ?? previousUser?.gender,
+        batchId: updated.batchId ?? previousUser?.batchId,
+        trainingId: updated.trainingId ?? previousUser?.trainingId,
+        batch: updated.batch ?? previousUser?.batch,
+        training: updated.training ?? previousUser?.training,
+        createdAt: updated.createdAt.isEmpty
+            ? (previousUser?.createdAt ?? '')
+            : updated.createdAt,
+      );
 
       if (base64Photo != null && base64Photo.isNotEmpty) {
         final remotePhoto = await _profileService.updateProfilePhoto(base64Photo);
@@ -81,6 +125,15 @@ class UserProvider extends ChangeNotifier {
         }
       }
 
+      if (_user != null) {
+        await _storage.saveProfileIdentity(
+          name: _user!.name,
+          email: _user!.email,
+          batch: _user!.batch,
+          training: _user!.training,
+        );
+      }
+
       return true;
     } on Exception catch (e) {
       debugPrint('ERROR UPDATE PROFILE: $e');
@@ -94,6 +147,11 @@ class UserProvider extends ChangeNotifier {
   Future<void> saveLocalImagePath(String path) async {
     await _storage.saveProfileImagePath(path);
     _localImagePath = path;
+    notifyListeners();
+  }
+
+  Future<void> clearLocalImagePreview() async {
+    _localImagePath = await _storage.getProfileImagePath();
     notifyListeners();
   }
 

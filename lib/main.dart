@@ -15,6 +15,7 @@ import 'package:presenta_app/presentation/pages/login_page.dart';
 import 'package:presenta_app/presentation/pages/register_page.dart';
 import 'package:presenta_app/presentation/pages/dashboard_page.dart';
 import 'package:presenta_app/presentation/pages/history_page.dart';
+import 'package:presenta_app/presentation/pages/splash_page.dart';
 import 'package:presenta_app/services/attendance_service.dart';
 import 'package:presenta_app/services/auth_service.dart';
 import 'package:presenta_app/services/profile_service.dart';
@@ -74,8 +75,9 @@ class MyApp extends StatelessWidget {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            home: const AuthenticationWrapper(),
+            home: const SplashPage(),
             routes: {
+              '/splash': (context) => const SplashPage(),
               '/login': (context) => const LoginPage(),
               '/register': (context) => const RegisterPage(),
               '/dashboard': (context) => const DashboardPage(),
