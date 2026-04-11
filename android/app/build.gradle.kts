@@ -28,7 +28,7 @@ val releaseKeystoreFile =
 val mapsApiKey = localProperties.getProperty("MAPS_API_KEY", "")
 
 android {
-    namespace = "com.presenta"
+    namespace = "com.egiegyy.presenta"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -43,7 +43,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.presenta"
+        applicationId = "com.egiegyy.presenta"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
