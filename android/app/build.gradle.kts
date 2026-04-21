@@ -3,7 +3,7 @@ import java.util.Properties
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    // Flutter plugin WAJIB di bawah
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -20,6 +20,7 @@ val keystoreProperties = Properties().apply {
         keystorePropertiesFile.reader(Charsets.UTF_8).use(::load)
     }
 }
+
 val releaseKeystoreFile =
     keystoreProperties.getProperty("storeFile")?.takeIf { it.isNotBlank() }?.let {
         rootProject.file(it)
@@ -32,24 +33,24 @@ android {
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
+    // Java 17
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    // Kotlin JVM target
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+        jvmTarget = "17"
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.egiegyy.presenta"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
@@ -68,6 +69,7 @@ android {
         release {
             isMinifyEnabled = false
             isShrinkResources = false
+
             signingConfig =
                 if (keystoreProperties.isNotEmpty()) {
                     signingConfigs.getByName("release")
@@ -75,6 +77,10 @@ android {
                     signingConfigs.getByName("debug")
                 }
         }
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 }
 
